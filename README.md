@@ -36,16 +36,16 @@ De SVG-beelden zijn voor dit prototype gemaakt en bevatten geen externe bronnen.
 
 ## Gerichte canvasaanpassingen
 
-De ordenstappen worden bij navigatie overgeslagen zolang er minder dan drie zelf toegevoegde woorden of zinnen zijn. Er wordt geen minimum afgedwongen: de oefeningen en afronding blijven toegankelijk. De oefening rond een gekozen element gebruikt neutrale vragen. Bij de eerste interactieve opening staat de uitnodiging om vrij te spelen, ook wanneer de eerdere ordenstap is overgeslagen.
+De ordenstappen worden bij navigatie overgeslagen zolang er geen zelf toegevoegde woorden of zinnen zijn. Er wordt geen minimum afgedwongen: de oefeningen en afronding blijven toegankelijk. De oefening rond een gekozen element gebruikt neutrale vragen. Bij de eerste interactieve opening staat de uitnodiging om vrij te spelen, ook wanneer de eerdere ordenstap is overgeslagen.
 
-Op het canvas kan ieder element een eigen kleur krijgen. Cirkel en rechthoek zijn eenvoudige verplaatsbare en schaalbare vormen; er is geen tekenmodus. Ze delen de bestaande richting-, grootte- en verwijderknoppen. Vormen worden niet als woorden aan de onderzoekskeuzelijst toegevoegd en tellen niet mee voor het minimum van drie verzamelde woorden/zinnen. Kleur en vorm krijgen geen betekenis vanuit de app. Bestaande lokale sessies blijven leesbaar.
+Op het canvas kan ieder element een eigen kleur krijgen. Cirkel en rechthoek zijn eenvoudige verplaatsbare en schaalbare vormen; er is geen tekenmodus. Ze delen de bestaande richting-, grootte- en verwijderknoppen. Vormen worden niet als woorden aan de onderzoekskeuzelijst toegevoegd en tellen niet mee voor de aanwezigheid van minstens één verzameld tekstelement. Kleur en vorm krijgen geen betekenis vanuit de app. Bestaande lokale sessies blijven leesbaar.
 
 ### Functionele controle
 
-Met Node.js: `node tests/flow.cjs`. Deze test gebruikt een kleine DOM-simulatie en controleert de routes met 0, 2, 3 en 5 woorden, het later bereiken van drie woorden, letterlijk ingevoegde teksten, kleur/vormen, verplaatsen, schalen, verwijderen, hervatten en wissen op twee canvasafmetingen. Dit is geen visuele browsertest of echte touchtest.
+Met Node.js: `node tests/flow.cjs`. Deze test gebruikt een kleine DOM-simulatie en controleert de routes met 0, 1, 2, 3, 5 en 6 woorden, letterlijk ingevoegde teksten, kleur/vormen, verplaatsen, schalen, verwijderen, hervatten en wissen op twee canvasafmetingen. Dit is geen visuele browsertest of echte touchtest.
 
 ## Flow en contact
 
-Vanaf drie zelf verzamelde tekstelementen verschijnt de interactieve ruimte; vormen tellen niet mee. Zonder tekstelementen wordt de elementoefening overgeslagen. Met één of twee woorden kan iemand wel een element onderzoeken. Alle terugblikken zijn gemarkeerd als niet bewerkbaar. De veranderingsvraag is open en hoeft niet beantwoord of ruimtelijk uitgewerkt te worden.
+Vanaf één of meer zelf verzamelde tekstelementen verschijnt de interactieve ruimte; vormen tellen niet mee. Zonder tekstelementen wordt de elementoefening overgeslagen. Met één of meer woorden kan iemand een element onderzoeken én de ruimte bewerken. Alle terugblikken zijn gemarkeerd als niet bewerkbaar. De veranderingsvraag is open en hoeft niet beantwoord of ruimtelijk uitgewerkt te worden.
 
 Stel in questions.json `contactLinks.experience` en `contactLinks.introduction` onafhankelijk in op een eigen volledige https://- of mailto:-bestemming. Ze zijn standaard leeg: de twee knoppen zijn dan zichtbaar maar uitgeschakeld. Er worden geen antwoorden of sessiegegevens in de links opgenomen. Teksten staan bij de finish-stap in dezelfde JSON. De optie om nieuwe kleurvlekken toe te voegen is verwijderd; eventueel eerder opgeslagen kleurvlekken blijven behouden.
