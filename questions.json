@@ -60,7 +60,7 @@
       "title": "Jouw Associatieruimte",
       "intro": "Er is inmiddels van alles ontstaan. Tijd om je Associatieruimte te bekijken.\n\nEr is geen goede manier om deze ruimte in te richten. Schuif, vergroot, verklein of geef kleur aan wat je aandacht trekt. Je kunt ook iets toevoegen of weghalen.",
       "canvas": true,
-      "minElements": 5
+      "minElements": 3
     },
     {
       "id": "explore",
@@ -85,7 +85,7 @@
       "title": "Kijk opnieuw naar je ruimte",
       "intro": "Kijk naar alles wat onderweg is ontstaan. Schuif dingen die voor jou bij elkaar horen dichter bij elkaar. Geef iets meer of minder ruimte door het groter of kleiner te maken. Voeg gerust iets toe of haal iets weg.",
       "canvas": true,
-      "minElements": 5
+      "minElements": 3
     },
     {
       "id": "return",
