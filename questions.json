@@ -1,13 +1,123 @@
 {
   "steps": [
-    {"id":"entry","category":"binnenkomen","title":"Waar wil je even bij stilstaan?","intro":"Hier is ruimte om iets op een andere manier te bekijken. Via beelden, woorden en je eigen associaties. Je hoeft geen antwoord te vinden. ‘Weet ik niet’, ‘niets’ en ‘nee’ zijn ook mogelijk. Dit is een reflectie-oefening, geen test, diagnose of advies.","entries":["Ik zit ergens mee","Ik ben ergens nieuwsgierig naar","Ik blijf ergens over nadenken"],"fields":[{"key":"originalQuestion","text":"Waar gaat het over?"}]},
-    {"id":"imagine","category":"verbeelden","title":"Laat een beeld verschijnen","fields":[{"key":"landscape","text":"Laat je woorden even los. Als datgene wat je hebt ingebracht een plek, landschap of omgeving zou zijn, wat verschijnt er dan als eerste?"},{"key":"notice","text":"Kijk nog eens naar dat beeld. Wat valt je als eerste op?"},{"key":"other","text":"Is er nog iets anders dat je aandacht trekt? (Optioneel)"}],"collect":true},
-    {"id":"images","category":"verbinden","title":"Wat trekt je aandacht?","intro":"Welke trekt als eerste je aandacht? Kies zonder er lang over na te denken. Je mag deze stap ook overslaan.","fields":[{"key":"imageAssociation","text":"Als ik naar dit beeld kijk, denk ik aan…"},{"key":"imageTogether","text":"Wat gebeurt er als je dit beeld naast je eigen beeld legt?"}],"collect":true},
-    {"id":"space","category":"ordenen","title":"Jouw Associatieruimte","intro":"Geef je woorden een plek. Je kunt ze verslepen, groter of kleiner maken, toevoegen of verwijderen. Jij kiest wat de plek en grootte voor je betekenen.","canvas":true},
-    {"id":"explore","category":"herinneren","title":"Sta bij één element stil","intro":"Kies zelf een element uit je ruimte om verder te onderzoeken. Je mag ook doorgaan zonder iets te kiezen.","fields":[{"key":"memory","text":"Denk terug aan een concreet moment waarop je {selectedElement} ervoer. Waar was je en wat gebeurde er?"},{"key":"memoryDetail","text":"Wat was er in dat moment waardoor je {selectedElement} ervoer?"}],"collect":true},
-    {"id":"arrange","category":"ordenen","title":"Kijk opnieuw naar je ruimte","intro":"Kijk naar alles wat onderweg is ontstaan. Schuif dingen die voor jou bij elkaar horen dichter bij elkaar. Geef iets meer of minder ruimte door het groter of kleiner te maken. Voeg gerust iets toe of haal iets weg.","canvas":true},
-    {"id":"return","category":"terugkeren","title":"Terug naar je beginvraag","fields":[{"key":"reflection","text":"Kijk nog eens naar je Associatieruimte en lees daarna je oorspronkelijke vraag opnieuw. Wat komt er nu bij je op?"}],"canvas":true,"readonly":true},
-    {"id":"new","category":"perspectief wisselen","title":"Een nieuwe vraag?","fields":[{"key":"newQuestion","text":"Heeft dit je misschien een nieuwe vraag gegeven? (Optioneel)"}]},
-    {"id":"finish","category":"afronden","title":"Dit ontstond er onderweg","intro":"Je hoeft er nu niets mee te doen. Misschien neem je iets mee, misschien wil je het laten bezinken.","canvas":true,"readonly":true}
+    {
+      "id": "entry",
+      "category": "binnenkomen",
+      "title": "Waar wil je even bij stilstaan?",
+      "intro": "Hier is ruimte om iets op een andere manier te bekijken. Via beelden, woorden en je eigen associaties. Je hoeft geen antwoord te vinden. ‘Weet ik niet’, ‘niets’ en ‘nee’ zijn ook mogelijk. Dit is een reflectie-oefening, geen test, diagnose of advies.",
+      "entries": [
+        "Ik zit ergens mee",
+        "Ik ben ergens nieuwsgierig naar",
+        "Ik blijf ergens over nadenken"
+      ],
+      "fields": [
+        {
+          "key": "originalQuestion",
+          "text": "Waar gaat het over?"
+        }
+      ]
+    },
+    {
+      "id": "imagine",
+      "category": "verbeelden",
+      "title": "Laat een beeld verschijnen",
+      "fields": [
+        {
+          "key": "landscape",
+          "text": "Laat je woorden even los. Als datgene wat je hebt ingebracht een plek, landschap of omgeving zou zijn, wat verschijnt er dan als eerste?"
+        },
+        {
+          "key": "notice",
+          "text": "Kijk nog eens naar dat beeld. Wat valt je als eerste op?"
+        },
+        {
+          "key": "other",
+          "text": "Is er nog iets anders dat je aandacht trekt? (Optioneel)"
+        }
+      ],
+      "collect": true
+    },
+    {
+      "id": "images",
+      "category": "verbinden",
+      "title": "Wat trekt je aandacht?",
+      "intro": "Welke trekt als eerste je aandacht? Kies zonder er lang over na te denken. Je mag deze stap ook overslaan.",
+      "fields": [
+        {
+          "key": "imageAssociation",
+          "text": "Als ik naar dit beeld kijk, denk ik aan…"
+        },
+        {
+          "key": "imageTogether",
+          "text": "Wat gebeurt er als je dit beeld naast je eigen beeld legt?"
+        }
+      ],
+      "collect": true
+    },
+    {
+      "id": "space",
+      "category": "ordenen",
+      "title": "Jouw Associatieruimte",
+      "intro": "Er is inmiddels van alles ontstaan. Tijd om je Associatieruimte te bekijken.\n\nEr is geen goede manier om deze ruimte in te richten. Schuif, vergroot, verklein of geef kleur aan wat je aandacht trekt. Je kunt ook iets toevoegen of weghalen.",
+      "canvas": true,
+      "minElements": 5
+    },
+    {
+      "id": "explore",
+      "category": "herinneren",
+      "title": "Sta bij één element stil",
+      "intro": "Kies zelf een element uit je ruimte om verder te onderzoeken. Je mag ook doorgaan zonder iets te kiezen.",
+      "fields": [
+        {
+          "key": "memory",
+          "text": "Als je ‘{selectedElement}’ naast je eigen ervaringen legt, wat komt er dan bij je op?"
+        },
+        {
+          "key": "memoryDetail",
+          "text": "Blijf nog even bij ‘{selectedElement}’. Wat valt je op?"
+        }
+      ],
+      "collect": true
+    },
+    {
+      "id": "arrange",
+      "category": "ordenen",
+      "title": "Kijk opnieuw naar je ruimte",
+      "intro": "Kijk naar alles wat onderweg is ontstaan. Schuif dingen die voor jou bij elkaar horen dichter bij elkaar. Geef iets meer of minder ruimte door het groter of kleiner te maken. Voeg gerust iets toe of haal iets weg.",
+      "canvas": true,
+      "minElements": 5
+    },
+    {
+      "id": "return",
+      "category": "terugkeren",
+      "title": "Terug naar je beginvraag",
+      "fields": [
+        {
+          "key": "reflection",
+          "text": "Kijk nog eens naar je Associatieruimte en lees daarna je oorspronkelijke vraag opnieuw. Wat komt er nu bij je op?"
+        }
+      ],
+      "canvas": true,
+      "readonly": true
+    },
+    {
+      "id": "new",
+      "category": "perspectief wisselen",
+      "title": "Een nieuwe vraag?",
+      "fields": [
+        {
+          "key": "newQuestion",
+          "text": "Heeft dit je misschien een nieuwe vraag gegeven? (Optioneel)"
+        }
+      ]
+    },
+    {
+      "id": "finish",
+      "category": "afronden",
+      "title": "Dit ontstond er onderweg",
+      "intro": "Je hoeft er nu niets mee te doen. Misschien neem je iets mee, misschien wil je het laten bezinken.",
+      "canvas": true,
+      "readonly": true
+    }
   ]
 }
