@@ -50,7 +50,7 @@ function canvas(host,readonly=false){
   if(readonly)continue;
   node.addEventListener('keydown',e=>{const delta={ArrowLeft:[-3,0],ArrowRight:[3,0],ArrowUp:[0,-3],ArrowDown:[0,3]}[e.key];if(delta){e.preventDefault();move(a,...delta);}});
   let drag=null;
-  node.addEventListener('pointerdown',e=>{if(e.button!==0)return;state.activeId=a.id;refreshControls();drag={x:e.clientX,y:e.clientY,ax:a.x,ay:a.y};node.setPointerCapture(e.pointerId);});
+  node.addEventListener('pointerdown',e=>{if(e.button!==0)return;e.preventDefault();state.activeId=a.id;refreshControls();drag={x:e.clientX,y:e.clientY,ax:a.x,ay:a.y};node.setPointerCapture(e.pointerId);});
   node.addEventListener('pointermove',e=>{if(!drag)return;const rect=space.getBoundingClientRect();a.x=bound(drag.ax+(e.clientX-drag.x)/rect.width*100,0,100);a.y=bound(drag.ay+(e.clientY-drag.y)/rect.height*100,0,100);position(node,a);});
   for(const event of ['pointerup','pointercancel','lostpointercapture'])node.addEventListener(event,()=>{drag=null;save();});
  }
