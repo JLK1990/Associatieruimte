@@ -13,60 +13,34 @@ function field(f){const label=el('label',null,{class:'field'});label.append(el('
 function collector(host){const box=el('section',null,{class:'collector'});box.append(el('p','Welke woorden of korte zinnen wil je zelf aan je ruimte toevoegen?'));const form=el('form',null), input=el('input',null,{'aria-label':'Nieuw woord of korte zin',placeholder:'Een woord of korte zin'});const add=el('button','Toevoegen',{type:'submit'});form.append(input,add);form.addEventListener('submit',e=>{e.preventDefault();if(!input.value.trim())return;const n=state.associations.length;state.associations.push({id:crypto.randomUUID(),text:input.value,x:20+(n%4)*20,y:20+(Math.floor(n/4)%4)*20,size:1});save();render();});box.append(form);const chips=el('div',null,{class:'chips'});for(const a of state.associations.filter(a=>!a.shape))chips.append(el('span',a.text,{class:'chip'}));box.append(chips);host.append(box);}
 function bound(n,min,max){return Math.min(max,Math.max(min,n));}
 const shapeNames = {circle:'Cirkel',rectangle:'Rechthoek',blob:'Kleurvlek'};
-function canvas(host,readonly=false){
- const space=el('div',null,{class:'canvas'+(readonly?' readonly':''),'aria-label':'Jouw Associatieruimte'});
- host.append(space);
- if(!state.associations.length)space.append(el('p','Je ruimte is nog leeg. Ook dat mag.',{class:'empty'}));
- const nodes=new Map();let controls;
- function position(node,a){
-  node.style.fontSize=(16*a.size)+'px';
-  if(a.shape){node.style.width=(90*a.size)+'px';node.style.height=((a.shape==='rectangle'?65:90)*a.size)+'px';}
-  node.style.backgroundColor=a.color||(a.shape?'#b3c5bb':'#fffdf1');
-  // Keep the entire element reachable at every screen size.
-  const rect=space.getBoundingClientRect();
-  const halfX=Math.min(49,(node.offsetWidth/2+4)/rect.width*100);
-  const halfY=Math.min(49,(node.offsetHeight/2+4)/rect.height*100);
-  node.style.left=bound(a.x,halfX,100-halfX)+'%';
-  node.style.top=bound(a.y,halfY,100-halfY)+'%';
- }
- function move(a,x,y){a.x=bound(a.x+x,0,100);a.y=bound(a.y+y,0,100);position(nodes.get(a.id),a);save();}
- function refreshControls(){
-  for(const a of state.associations)if(!readonly)nodes.get(a.id).setAttribute('aria-pressed',String(a.id===state.activeId));
-  if(!controls)return;controls.replaceChildren();
-  const active=state.associations.find(a=>a.id===state.activeId);
-  controls.append(el('p',active?'Geselecteerd: '+(shapeNames[active.shape]||active.text):'Kies een element. Gebruik de knoppen om het te verplaatsen, te veranderen of kleur te geven.'));
-  if(!active)return;
-  for(const [text,x,y] of [['←',-4,0],['→',4,0],['↑',0,-4],['↓',0,4]])controls.append(button(text,()=>move(active,x,y),{'aria-label':{'←':'Naar links','→':'Naar rechts','↑':'Omhoog','↓':'Omlaag'}[text]}));
-  for(const [text,d] of [['Kleiner',-.15],['Groter',.15]])controls.append(button(text,()=>{active.size=bound(active.size+d,.7,2.4);position(nodes.get(active.id),active);save();}));
-  const label=el('label',null,{class:'color-control'});label.append(el('span','Kleur'));
-  const color=el('input',null,{type:'color','aria-label':'Kleur van geselecteerd element'});color.value=active.color||(active.shape?'#b3c5bb':'#fffdf1');
-  color.addEventListener('input',()=>{active.color=color.value;position(nodes.get(active.id),active);save();});label.append(color);controls.append(label);
-  controls.append(button('Verwijderen',()=>{state.associations=state.associations.filter(a=>a.id!==active.id);if(!active.shape&&state.selectedElement===active.text)state.selectedElement=null;state.activeId=null;save();render();}));
- }
- for(const a of state.associations){
-  const attrs={class:'word'+(a.shape?' shape shape-'+a.shape:''),'aria-label':a.shape?shapeNames[a.shape]:a.text};
-  const node=readonly?el('span',a.shape?'':a.text,attrs):button(a.shape?'':a.text,()=>{state.activeId=a.id;save();refreshControls();},{...attrs,'aria-pressed':String(a.id===state.activeId)});
-  node.dataset.id=a.id;space.append(node);nodes.set(a.id,node);position(node,a);
-  if(readonly)continue;
-  node.addEventListener('keydown',e=>{const delta={ArrowLeft:[-3,0],ArrowRight:[3,0],ArrowUp:[0,-3],ArrowDown:[0,3]}[e.key];if(delta){e.preventDefault();move(a,...delta);}});
-  let drag=null;
-  node.addEventListener('pointerdown',e=>{if(e.button!==0)return;e.preventDefault();state.activeId=a.id;refreshControls();drag={x:e.clientX,y:e.clientY,ax:a.x,ay:a.y};node.setPointerCapture(e.pointerId);});
-  node.addEventListener('pointermove',e=>{if(!drag)return;const rect=space.getBoundingClientRect();a.x=bound(drag.ax+(e.clientX-drag.x)/rect.width*100,0,100);a.y=bound(drag.ay+(e.clientY-drag.y)/rect.height*100,0,100);position(node,a);});
-  for(const event of ['pointerup','pointercancel','lostpointercapture'])node.addEventListener(event,()=>{drag=null;save();});
- }
- const observer=new ResizeObserver(()=>{for(const a of state.associations)position(nodes.get(a.id),a);});observer.observe(space);
- // Disconnect the observer when this step is replaced.
- canvasCleanup=()=>observer.disconnect();
- if(!readonly){
-  controls=el('div',null,{class:'tools'});host.append(controls);refreshControls();
-  const shapes=el('div',null,{class:'shape-controls','aria-label':'Vorm toevoegen'});
-  for(const [shape,name] of Object.entries(shapeNames))shapes.append(button(name+' toevoegen',()=>{const id=crypto.randomUUID();state.associations.push({id,shape,text:'',x:50,y:50,size:1,color:'#b3c5bb'});state.activeId=id;save();render();}));
-  host.append(shapes);
- }
+function canvas(host,readonly=false){const space=el('div',null,{class:'canvas'+(readonly?' readonly':''),'aria-label':'Jouw Associatieruimte'});host.append(space);if(!state.associations.length)space.append(el('p','Je ruimte is nog leeg. Ook dat mag.',{class:'empty'}));
+for(const a of state.associations){const node=readonly?el('span',a.shape?'':a.text,{class:'word'+(a.shape?' shape shape-'+a.shape:'')}):button(a.shape?'':a.text,()=>{state.activeId=a.id;save();refreshControls();},{class:'word'+(a.shape?' shape shape-'+a.shape:''),'aria-label':shapeNames[a.shape]||a.text,'aria-pressed':String(a.id===state.activeId)});node.dataset.id=a.id;space.append(node);position(node,a);
+if(!readonly){node.addEventListener('keydown',e=>{const delta={ArrowLeft:[-3,0],ArrowRight:[3,0],ArrowUp:[0,-3],ArrowDown:[0,3]}[e.key];if(delta){e.preventDefault();move(a,delta[0],delta[1]);}});let drag=null;node.addEventListener('pointerdown',e=>{if(e.button!==0)return;state.activeId=a.id;refreshControls();drag={x:e.clientX,y:e.clientY,ax:a.x,ay:a.y};node.setPointerCapture(e.pointerId);});node.addEventListener('pointermove',e=>{if(!drag)return;const rect=space.getBoundingClientRect();a.x=bound(drag.ax+(e.clientX-drag.x)/rect.width*100,12,88);a.y=bound(drag.ay+(e.clientY-drag.y)/rect.height*100,10,90);position(node,a);});node.addEventListener('pointerup',()=>{drag=null;save();});node.addEventListener('pointercancel',()=>{drag=null;save();});}}
+function position(node,a){
+node.style.fontSize=(16*a.size)+'px';
+if(a.shape){node.style.width=(90*a.size)+'px';node.style.height=((a.shape==='rectangle'?65:90)*a.size)+'px';}
+node.style.backgroundColor=a.color||(a.shape?'#b3c5bb':'#fffdf1');
+// Bound the stored position as well as the visible position.
+node.style.left=a.x+'%';node.style.top=a.y+'%';
+const rect=space.getBoundingClientRect();
+const halfX=Math.min(49,(node.offsetWidth/2+4)/rect.width*100);
+const halfY=Math.min(49,(node.offsetHeight/2+4)/rect.height*100);
+a.x=bound(a.x,Math.max(12,halfX),Math.min(88,100-halfX));
+a.y=bound(a.y,Math.max(10,halfY),Math.min(90,100-halfY));
+node.style.left=a.x+'%';node.style.top=a.y+'%';
 }
-let canvasCleanup=null;
+function move(a,x,y){a.x=bound(a.x+x,12,88);a.y=bound(a.y+y,10,90);const node=[...space.children].find(n=>n.dataset.id===a.id);if(node)position(node,a);save();}
+let controls;
+function refreshControls(){for(const [i,node] of [...space.querySelectorAll('.word')].entries())node.setAttribute('aria-pressed',String(state.associations[i].id===state.activeId));if(!controls)return;controls.replaceChildren();const active=state.associations.find(a=>a.id===state.activeId);controls.append(el('p',active?'Geselecteerd: '+(shapeNames[active.shape]||active.text):'Kies een woord. Gebruik daarna de knoppen om het te verplaatsen of te veranderen.'));if(!active)return;for(const [text,x,y] of [['←',-4,0],['→',4,0],['↑',0,-4],['↓',0,4]])controls.append(button(text,()=>move(active,x,y),{'aria-label':{ '←':'Naar links','→':'Naar rechts','↑':'Omhoog','↓':'Omlaag'}[text]}));for(const [text,d] of [['Kleiner',-.15],['Groter',.15]])controls.append(button(text,()=>{active.size=bound(active.size+d,.7,2.4);position(space.querySelector('[aria-pressed="true"]'),active);save();}));const label=el('label',null,{class:'color-control'});label.append(el('span','Kleur'));
+const color=el('input',null,{type:'color','aria-label':'Kleur van geselecteerd element'});color.value=active.color||(active.shape?'#b3c5bb':'#fffdf1');
+color.addEventListener('input',()=>{active.color=color.value;position(space.querySelector('[aria-pressed="true"]'),active);save();});label.append(color);controls.append(label);
+controls.append(button('Verwijderen',()=>{state.associations=state.associations.filter(a=>a.id!==active.id);if(!active.shape&&state.selectedElement===active.text)state.selectedElement=null;state.activeId=null;save();render();}));}
+if(!readonly){controls=el('div',null,{class:'tools'});host.append(controls);refreshControls();
+const shapes=el('div',null,{class:'shape-controls','aria-label':'Vorm toevoegen'});
+for(const [shape,name] of Object.entries(shapeNames))shapes.append(button(name+' toevoegen',()=>{const id=crypto.randomUUID();state.associations.push({id,shape,text:'',x:50,y:50,size:1,color:'#b3c5bb'});state.activeId=id;save();render();}));
+host.append(shapes);}}
 function availableStep(index,direction){while(index>0&&index<steps.length-1&&steps[index].minElements>state.associations.filter(a=>!a.shape).length)index+=direction;return bound(index,0,steps.length-1);}
-function render(){if(canvasCleanup){canvasCleanup();canvasCleanup=null;}app.replaceChildren();const s=steps[state.step];if(!s)return;if(s.canvas&&!s.readonly&&!state.firstSpaceStep){state.firstSpaceStep=s.id;save();}const progress=el('progress',null,{max:String(steps.length),value:String(state.step+1),'aria-label':'Voortgang'});app.append(progress,el('p',`Associatieruimte · ${state.step+1} van ${steps.length}`,{class:'eyebrow'}));const heading=el('h1',s.title,{tabindex:'-1'});app.append(heading);if(s.intro){const intro=s.canvas&&!s.readonly&&state.firstSpaceStep===s.id?steps.find(step=>step.id==='space').intro:s.intro;app.append(el('p',intro,{class:'intro'}));}
+function render(){app.replaceChildren();const s=steps[state.step];if(!s)return;if(s.canvas&&!s.readonly&&!state.firstSpaceStep){state.firstSpaceStep=s.id;save();}const progress=el('progress',null,{max:String(steps.length),value:String(state.step+1),'aria-label':'Voortgang'});app.append(progress,el('p',`Associatieruimte · ${state.step+1} van ${steps.length}`,{class:'eyebrow'}));const heading=el('h1',s.title,{tabindex:'-1'});app.append(heading);if(s.intro){const intro=s.canvas&&!s.readonly&&state.firstSpaceStep===s.id?steps.find(step=>step.id==='space').intro:s.intro;app.append(el('p',intro,{class:'intro'}));}
 if(s.id==='entry'){const choices=el('div',null,{class:'choices','aria-label':'Kies een ingang'});s.entries.forEach(t=>choices.append(button(t,()=>{state.entryType=t;save();render();},{'aria-pressed':String(state.entryType===t)})));app.append(choices);}
 if(s.id==='images'){const gallery=el('div',null,{class:'gallery'});for(let i=1;i<=5;i++){const b=button('',()=>{state.selectedImage=i;save();render();},{'aria-pressed':String(state.selectedImage===i),'aria-label':'Kies beeld '+i});b.append(el('img',null,{src:`images/image-0${i}.svg`,alt:['Een glooiend landschap','Ringen op het water','Een doorgang','Takjes en bladeren','Een pad tussen heuvels'][i-1]}),el('span','Beeld '+i));gallery.append(b);}app.append(gallery);}
 if(s.canvas){if(!s.readonly&&!state.firstSpaceStep){state.firstSpaceStep=s.id;save();}canvas(app,s.readonly);}
