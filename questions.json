@@ -74,10 +74,11 @@
         },
         {
           "key": "memoryDetail",
-          "text": "Blijf nog even bij ‘{selectedElement}’. Wat valt je op?"
+          "text": "Als ‘{selectedElement}’ zou kunnen veranderen, wat zou er dan gebeuren?"
         }
       ],
-      "collect": true
+      "collect": true,
+      "minElements": 1
     },
     {
       "id": "arrange",
@@ -85,7 +86,9 @@
       "title": "Kijk opnieuw naar je ruimte",
       "intro": "Kijk naar alles wat onderweg is ontstaan. Schuif dingen die voor jou bij elkaar horen dichter bij elkaar. Geef iets meer of minder ruimte door het groter of kleiner te maken. Voeg gerust iets toe of haal iets weg.",
       "canvas": true,
-      "minElements": 3
+      "minElements": 3,
+      "changeInvitation": "Wil je iets in je Associatieruimte veranderen om dat zichtbaar te maken?",
+      "changeHint": "Je kunt iets verplaatsen, groter of kleiner maken, kleur geven, iets toevoegen of weghalen."
     },
     {
       "id": "return",
@@ -117,7 +120,29 @@
       "title": "Dit ontstond er onderweg",
       "intro": "Je hoeft er nu niets mee te doen. Misschien neem je iets mee, misschien wil je het laten bezinken.",
       "canvas": true,
-      "readonly": true
+      "readonly": true,
+      "contact": [
+        {
+          "title": "Heeft deze ruimte iets bij je in beweging gebracht?",
+          "text": "Misschien viel je iets op, ontstond er een nieuwe vraag of keek je net even anders naar wat je bezighoudt.\n\nIk vind het leuk om te horen wat de Associatieruimte je bracht. Als je wilt, mag je me daar gerust een berichtje over sturen.",
+          "label": "Deel je ervaring met mij",
+          "urlKey": "experience"
+        },
+        {
+          "title": "Wil je samen verder kijken?",
+          "text": "De Associatieruimte geeft je geen antwoorden of interpretaties. Dat is bewust: jouw eigen associaties en waarnemingen staan centraal.\n\nIn mijn begeleiding werk ik ook op die manier. Niet door je te vertellen wat iets over jou betekent, maar door samen te onderzoeken wat er gebeurt, wat je opvalt en waar voor jou beweging ontstaat.",
+          "label": "Kennismaken",
+          "urlKey": "introduction"
+        }
+      ]
     }
-  ]
+  ],
+  "readonlyCanvas": {
+    "title": "Terugblik · niet bewerkbaar",
+    "text": "Dit is je Associatieruimte zoals die nu is ontstaan."
+  },
+  "contactLinks": {
+    "experience": "",
+    "introduction": ""
+  }
 }
