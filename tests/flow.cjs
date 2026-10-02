@@ -1,0 +1,40 @@
+const fs=require('fs'),vm=require('vm'),assert=require('assert'),path=require('path');
+const root=path.resolve(__dirname,'..');
+let width=350,height=380;
+class Element{
+ constructor(tag){this.tag=tag;this.children=[];this.attrs={};this.listeners={};this.style={};this.dataset={};this.value='';this._text='';}
+ set textContent(t){this._text=t;this.children=[];}get textContent(){return this._text+this.children.map(c=>c.textContent).join('');}
+ setAttribute(k,v){this.attrs[k]=String(v);}getAttribute(k){return this.attrs[k];}
+ append(...c){this.children.push(...c);for(const n of c)n.parent=this;}
+ replaceChildren(...c){this.children=[];this._text='';this.append(...c);}
+ addEventListener(k,fn){this.listeners[k]=fn;}
+ querySelectorAll(q){return this.children.flatMap(c=>[...(match(c,q)?[c]:[]),...c.querySelectorAll(q)]);}
+ querySelector(q){return this.querySelectorAll(q)[0];}focus(){}before(n){this.parent.children.splice(this.parent.children.indexOf(this),0,n);}setPointerCapture(){}
+ getBoundingClientRect(){return {width,height};}get offsetWidth(){return parseFloat(this.style.width)||Math.min(width*.65,140);}get offsetHeight(){return parseFloat(this.style.height)||44;}
+}
+function match(n,q){return q.startsWith('.')?(n.attrs.class||'').split(' ').includes(q.slice(1)):q==='[aria-pressed="true"]'?n.attrs['aria-pressed']==='true':n.tag===q;}
+const script=fs.readFileSync(path.join(root,'app.js'),'utf8'), questions=JSON.parse(fs.readFileSync(path.join(root,'questions.json')));
+async function scenario(count,late=false,viewport='mobile'){
+ width=viewport==='mobile'?350:872;height=viewport==='mobile'?380:500;
+ const app=new Element('main'),erase=new Element('button'),notice=new Element('p');let stored=null;const requests=[];
+ const ctx={document:{querySelector:q=>({'#app':app,'#erase':erase,'#storage-notice':notice})[q],createElement:t=>new Element(t)},localStorage:{getItem:()=>stored,setItem:(k,v)=>stored=v,removeItem:()=>stored=null},crypto:require('crypto').webcrypto,window:{scrollTo(){}},ResizeObserver:class{observe(){}disconnect(){}},fetch:async url=>{requests.push(url);return{ok:true,json:async()=>questions};}};
+ vm.createContext(ctx);vm.runInContext(script,ctx);await new Promise(r=>setImmediate(r));
+ const click=text=>{const n=app.querySelectorAll('button').find(n=>n.textContent===text);assert(n,text);n.listeners.click();};
+ const heading=()=>app.querySelector('h1').textContent;
+ const add=text=>{app.querySelector('input').value=text;app.querySelector('form').listeners.submit({preventDefault(){}});};
+ click('Ik zit ergens mee');const original='  Mijn vraag <script>\n exact  ';const question=app.querySelector('textarea');question.value=original;question.listeners.input();click('Verder');
+ for(let i=0;i<count;i++)add(i===0?'vogeltje $&':`woord ${i}`);
+ click('Verder');app.querySelectorAll('button').find(n=>n.attrs['aria-label']==='Kies beeld 1').listeners.click();click('Verder');
+ if(count>=5){assert.equal(heading(),'Jouw Associatieruimte');assert(app.querySelector('.intro').textContent.includes('Er is inmiddels'));const word=app.querySelector('.word');word.listeners.click();const color=app.querySelectorAll('input').find(n=>n.attrs.type==='color');color.value='#be4466';color.listeners.input();assert.equal(JSON.parse(stored).associations[0].color,'#be4466');
+  for(const name of ['Cirkel','Rechthoek','Kleurvlek']){click(name+' toevoegen');const shape=app.querySelectorAll('.shape').at(-1);assert(shape);const previous=JSON.parse(stored).associations.at(-1);click('→');click('Groter');const changed=JSON.parse(stored).associations.at(-1);assert(changed.x>previous.x&&changed.size>previous.size);shape.listeners.pointerdown({button:0,clientX:100,clientY:100,pointerId:1,pointerType:viewport==='mobile'?'touch':'mouse'});shape.listeners.pointermove({clientX:150,clientY:130});shape.listeners.pointerup();assert(JSON.parse(stored).associations.at(-1).x>changed.x);const c=app.querySelectorAll('input').find(n=>n.attrs.type==='color');c.value='#2288cc';c.listeners.input();assert.equal(JSON.parse(stored).associations.at(-1).color,'#2288cc');click('Verwijderen');assert.equal(app.querySelectorAll('.shape').length,0);}
+  click('Verder');
+ }else{assert.equal(heading(),'Sta bij één element stil');assert(!app.querySelector('.canvas'));}
+ const select=app.querySelector('select');if(count){select.value=JSON.parse(stored).associations[0].id;select.listeners.change();assert.equal(app.querySelectorAll('textarea')[0].attrs['aria-label'],'Als je ‘vogeltje $&’ naast je eigen ervaringen legt, wat komt er dan bij je op?');assert.equal(app.querySelectorAll('textarea')[1].attrs['aria-label'],'Blijf nog even bij ‘vogeltje $&’. Wat valt je op?');}
+ if(late){for(let i=count;i<5;i++)add('later '+i);}
+ click('Verder');if(count>=5||late){assert.equal(heading(),'Kijk opnieuw naar je ruimte');if(late)assert(app.querySelector('.intro').textContent.includes('Er is inmiddels'));click('Cirkel toevoegen');const c=app.querySelectorAll('input').find(n=>n.attrs.type==='color');c.value='#cc6633';c.listeners.input();click('Verder');}
+ assert.equal(heading(),'Terug naar je beginvraag');assert.equal(app.querySelector('blockquote').textContent,original);click('Verder');click('Verder');assert.equal(heading(),'Dit ontstond er onderweg');if(count>=5||late){assert.equal(app.querySelectorAll('.shape').length,1);assert.equal(JSON.parse(stored).associations.at(-1).color,'#cc6633');}assert.deepEqual(requests,['questions.json']);
+ // Re-execute with the same localStorage to verify resumed session.
+ vm.createContext({...ctx});vm.runInNewContext(script,{...ctx});await new Promise(r=>setImmediate(r));assert.equal(heading(),'Dit ontstond er onderweg');erase.listeners.click();assert.equal(stored,null);assert.equal(heading(),'Waar wil je even bij stilstaan?');
+ console.log(`PASS ${viewport}: ${count} initial words${late?', fifth word added later':''}; full flow, exact text, resume, erase`);
+}
+(async()=>{for(const viewport of ['desktop','mobile'])for(const [count,late] of [[0,false],[2,false],[4,false],[4,true],[5,false]])await scenario(count,late,viewport);})();
