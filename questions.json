@@ -21,21 +21,8 @@
       "id": "imagine",
       "category": "verbeelden",
       "title": "Laat een beeld verschijnen",
-      "fields": [
-        {
-          "key": "landscape",
-          "text": "Laat je woorden even los. Als datgene wat je hebt ingebracht een plek, landschap of omgeving zou zijn, wat verschijnt er dan als eerste?"
-        },
-        {
-          "key": "notice",
-          "text": "Kijk nog eens naar dat beeld. Wat valt je als eerste op?"
-        },
-        {
-          "key": "other",
-          "text": "Is er nog iets anders dat je aandacht trekt? (Optioneel)"
-        }
-      ],
-      "collect": true
+      "collect": true,
+      "route": true
     },
     {
       "id": "images",
@@ -49,7 +36,7 @@
         },
         {
           "key": "imageTogether",
-          "text": "Wat gebeurt er als je dit beeld naast je eigen beeld legt?"
+          "text": "Wat komt er bij je op als je dit beeld naast je eerdere associatie legt?"
         }
       ],
       "collect": true
@@ -144,5 +131,163 @@
   "contactLinks": {
     "experience": "mailto:info@jekerntotbloei.nl?subject=Mijn%20ervaring%20met%20de%20Associatieruimte",
     "introduction": "https://www.jekerntotbloei.nl/afspraak-maken"
-  }
+  },
+  "routes": [
+    {
+      "id": "landscape",
+      "title": "Laat een plek verschijnen",
+      "fields": [
+        {
+          "key": "landscape",
+          "text": "Als datgene wat je hebt ingebracht een plek, landschap of omgeving zou zijn, wat verschijnt er dan als eerste?"
+        },
+        {
+          "key": "notice",
+          "text": "Kijk nog eens naar die plek. Wat valt je als eerste op?"
+        },
+        {
+          "key": "other",
+          "text": "Is er nog iets anders dat je aandacht trekt? (Optioneel)"
+        }
+      ]
+    },
+    {
+      "id": "animal",
+      "title": "Laat een dier verschijnen",
+      "fields": [
+        {
+          "key": "animal",
+          "text": "Als wat je bezighoudt een dier zou zijn, welk dier komt er dan als eerste bij je op?"
+        },
+        {
+          "key": "animalAction",
+          "text": "Wat doet dat dier?"
+        },
+        {
+          "key": "animalNotice",
+          "text": "Wat valt je daaraan op?"
+        }
+      ]
+    },
+    {
+      "id": "movement",
+      "title": "Laat een beweging verschijnen",
+      "fields": [
+        {
+          "key": "movement",
+          "text": "Als wat je bezighoudt een beweging zou zijn, hoe zou die bewegen?"
+        },
+        {
+          "key": "movementNotice",
+          "text": "Wat valt je op aan die beweging?"
+        },
+        {
+          "key": "movementChange",
+          "text": "Verandert de beweging ergens, of blijft die hetzelfde? (Optioneel)"
+        }
+      ]
+    }
+  ],
+  "imagePool": [
+    {
+      "id": "image-01",
+      "src": "images/candidates/image-01.webp",
+      "variation": [
+        "inside",
+        "environment",
+        "open",
+        "made"
+      ]
+    },
+    {
+      "id": "image-02",
+      "src": "images/candidates/image-02.webp",
+      "variation": [
+        "outside",
+        "detail",
+        "full",
+        "nature"
+      ]
+    },
+    {
+      "id": "image-03",
+      "src": "images/candidates/image-03.webp",
+      "variation": [
+        "inside",
+        "object",
+        "full",
+        "made"
+      ]
+    },
+    {
+      "id": "image-04",
+      "src": "images/candidates/image-04.webp",
+      "variation": [
+        "inside",
+        "detail",
+        "open",
+        "made"
+      ]
+    },
+    {
+      "id": "image-05",
+      "src": "images/candidates/image-05.webp",
+      "variation": [
+        "outside",
+        "object",
+        "open",
+        "mixed"
+      ]
+    },
+    {
+      "id": "image-06",
+      "src": "images/candidates/image-06.webp",
+      "variation": [
+        "inside",
+        "environment",
+        "open",
+        "made"
+      ]
+    },
+    {
+      "id": "image-07",
+      "src": "images/candidates/image-07.webp",
+      "variation": [
+        "mixed",
+        "environment",
+        "full",
+        "made"
+      ]
+    },
+    {
+      "id": "image-08",
+      "src": "images/candidates/image-08.webp",
+      "variation": [
+        "inside",
+        "object",
+        "full",
+        "mixed"
+      ]
+    },
+    {
+      "id": "image-09",
+      "src": "images/candidates/image-09.webp",
+      "variation": [
+        "outside",
+        "environment",
+        "full",
+        "made"
+      ]
+    },
+    {
+      "id": "image-10",
+      "src": "images/candidates/image-10.webp",
+      "variation": [
+        "inside",
+        "object",
+        "open",
+        "made"
+      ]
+    }
+  ]
 }
