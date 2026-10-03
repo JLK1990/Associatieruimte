@@ -36,7 +36,8 @@
         },
         {
           "key": "imageTogether",
-          "text": "Wat komt er bij je op als je dit beeld naast je eerdere associatie legt?"
+          "text": "Wat komt er bij je op als je dit beeld naast je eerdere associatie legt?",
+          "referenceRouteField": 0
         }
       ],
       "collect": true
@@ -50,6 +51,13 @@
       "minElements": 1
     },
     {
+      "id": "research",
+      "category": "onderzoeken",
+      "title": "Wil je eens iets uitproberen?",
+      "intro": "Kies iets dat je wilt onderzoeken. Je kunt verdergaan wanneer het voor jou genoeg is.",
+      "minElements": 1
+    },
+    {
       "id": "explore",
       "category": "herinneren",
       "title": "Sta bij één element stil",
@@ -57,7 +65,7 @@
       "fields": [
         {
           "key": "memory",
-          "text": "Als je ‘{selectedElement}’ naast je eigen ervaringen legt, wat komt er dan bij je op?"
+          "text": "Ga in gedachten eens bij ‘{selectedElement}’ staan. Wat ervaar je hier?"
         },
         {
           "key": "memoryDetail",
@@ -143,7 +151,8 @@
         },
         {
           "key": "notice",
-          "text": "Kijk nog eens naar die plek. Wat valt je als eerste op?"
+          "text": "Kijk nog eens naar die plek. Wat valt je als eerste op?",
+          "referenceKey": "landscape"
         },
         {
           "key": "other",
@@ -161,11 +170,13 @@
         },
         {
           "key": "animalAction",
-          "text": "Wat doet dat dier?"
+          "text": "Wat doet dat dier?",
+          "referenceKey": "animal"
         },
         {
           "key": "animalNotice",
-          "text": "Wat valt je daaraan op?"
+          "text": "Wat valt je daaraan op?",
+          "referenceKey": "animalAction"
         }
       ]
     },
@@ -179,11 +190,13 @@
         },
         {
           "key": "movementNotice",
-          "text": "Wat valt je op aan die beweging?"
+          "text": "Wat valt je op aan die beweging?",
+          "referenceKey": "movement"
         },
         {
           "key": "movementChange",
-          "text": "Verandert de beweging ergens, of blijft die hetzelfde? (Optioneel)"
+          "text": "Verandert de beweging ergens, of blijft die hetzelfde? (Optioneel)",
+          "referenceKey": "movement"
         }
       ]
     }
@@ -288,6 +301,162 @@
         "open",
         "made"
       ]
+    }
+  ],
+  "researchRoutes": [
+    {
+      "id": "standing",
+      "label": "Bij een woord gaan staan",
+      "minTextElements": 1,
+      "interactionType": "standing",
+      "xSelection": "Kies een woord waar je gevoelsmatig even bij wilt gaan staan.",
+      "fields": [
+        {
+          "key": "here",
+          "text": "Ga in gedachten eens bij ‘{X}’ staan. Blijf daar even. Wat ervaar je hier?"
+        },
+        {
+          "key": "around",
+          "text": "Kijk vanaf hier eens om je heen. Wat valt je op?"
+        }
+      ],
+      "lookChoice": "Vanaf dit woord naar een ander woord kijken",
+      "ySelection": "Welk ander woord trekt vanaf ‘{X}’ je aandacht?",
+      "lookField": {
+        "key": "look",
+        "text": "Blijf bij ‘{X}’ staan en kijk naar ‘{Y}’. Wat ervaar je?"
+      },
+      "reverseChoice": "Vanaf het andere woord terugkijken",
+      "reverseField": {
+        "key": "reverse",
+        "text": "Ga nu eens gevoelsmatig bij ‘{Y}’ staan en kijk terug naar ‘{X}’. Hoe is het vanaf deze kant?"
+      },
+      "collectionInvitation": "Komt er, terwijl je hier staat, nog iets op dat je aan je Associatieruimte wilt toevoegen?"
+    },
+    {
+      "id": "dialogue",
+      "label": "Twee woorden laten spreken",
+      "minTextElements": 2,
+      "interactionType": "dialogue",
+      "xSelection": "Kies een woord waar je gevoelsmatig even bij wilt gaan staan.",
+      "ySelection": "Kijk vanaf ‘{X}’ naar de andere woorden in je ruimte. Welk woord trekt je aandacht?",
+      "field": {
+        "key": "say",
+        "text": "Als ‘{X}’ vanuit deze plek iets tegen ‘{Y}’ kon zeggen, wat zou dat dan zijn?"
+      },
+      "replyChoice": "Wil je ‘{Y}’ laten reageren?",
+      "replyField": {
+        "key": "reply",
+        "text": "En als ‘{Y}’ daarop kon reageren, wat zou het dan zeggen?"
+      },
+      "collectionInvitation": "Zit er iets in wat er net ontstond dat je aan je Associatieruimte wilt toevoegen?",
+      "hereField": {
+        "key": "here",
+        "text": "Ga in gedachten eens bij ‘{X}’ staan. Blijf daar even. Wat ervaar je hier?"
+      },
+      "lookChoice": "Vanaf dit woord naar de andere woorden kijken",
+      "lookField": {
+        "key": "look",
+        "text": "Blijf nog even bij ‘{X}’ staan en kijk naar ‘{Y}’. Wat ervaar je als je vanaf hier naar ‘{Y}’ kijkt?"
+      },
+      "sayChoice": "Vanuit deze plek iets laten zeggen"
+    },
+    {
+      "id": "size",
+      "label": "Groot en klein ervaren",
+      "minTextElements": 1,
+      "interactionType": "size",
+      "collectionInvitation": "Komt er iets op dat je aan je Associatieruimte wilt toevoegen?",
+      "variants": {
+        "more": {
+          "xSelection": "Welk woord neemt voor jouw gevoel op dit moment de meeste ruimte in?",
+          "phases": [
+            {
+              "id": "large",
+              "instruction": "Maak ‘{X}’ eens flink groter. Overdrijf gerust een beetje.",
+              "fields": [
+                {
+                  "key": "largeView",
+                  "text": "Kijk naar je ruimte. Wat gebeurt er?"
+                },
+                {
+                  "key": "largeBody",
+                  "text": "Wat merk je in je lijf?"
+                }
+              ],
+              "nextLabel": "Ook de kleine versie ervaren"
+            },
+            {
+              "id": "small",
+              "instruction": "Maak ‘{X}’ nu eens veel kleiner dan het net was.",
+              "fields": [
+                {
+                  "key": "smallView",
+                  "text": "Wat gebeurt er nu?"
+                },
+                {
+                  "key": "smallBody",
+                  "text": "Wat merk je nu in je lijf?"
+                }
+              ],
+              "nextLabel": "Het verschil bekijken en zelf een grootte kiezen"
+            },
+            {
+              "id": "own",
+              "fields": [
+                {
+                  "key": "contrast",
+                  "text": "Wat merk je aan het verschil tussen groot en klein?"
+                }
+              ],
+              "instruction": "Geef ‘{X}’ nu de grootte die op dit moment voor jou klopt."
+            }
+          ]
+        },
+        "less": {
+          "xSelection": "Welk woord krijgt voor jouw gevoel op dit moment juist weinig ruimte?",
+          "phases": [
+            {
+              "id": "small",
+              "beforeFields": [
+                {
+                  "key": "here",
+                  "text": "Ga eens gevoelsmatig bij ‘{X}’ staan. Wat ervaar je hier?"
+                }
+              ],
+              "instruction": "Maak ‘{X}’ eens nóg kleiner. Overdrijf het gerust een beetje.",
+              "fields": [
+                {
+                  "key": "smallBody",
+                  "text": "Wat merk je nu in je lijf?"
+                }
+              ],
+              "nextLabel": "Ook de grote versie ervaren"
+            },
+            {
+              "id": "large",
+              "instruction": "Maak ‘{X}’ nu juist heel groot. Geef het veel ruimte.",
+              "fields": [
+                {
+                  "key": "largeBody",
+                  "text": "Wat merk je nu in je lijf?"
+                }
+              ],
+              "nextLabel": "Het verschil bekijken en zelf een grootte kiezen"
+            },
+            {
+              "id": "own",
+              "fields": [
+                {
+                  "key": "contrast",
+                  "text": "Wat is er anders tussen die twee?"
+                }
+              ],
+              "instruction": "Geef ‘{X}’ nu de grootte die op dit moment voor jou klopt."
+            }
+          ]
+        }
+      }
     }
   ]
 }
