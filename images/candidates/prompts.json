@@ -1,0 +1,17 @@
+{
+  "tool": "built-in imagegen",
+  "referenceRole": "visual style only; do not crop or reproduce",
+  "sharedStyle": "Single standalone square painting; expressive hand-painted gouache/acrylic, visible strokes and texture, lively colors, organic imperfections, adult playful, recognizable objects, no text, panels, symbolism or prescribed emotion.",
+  "scenes": [
+    "An empty metal chair standing on the tiled floor of a large indoor swimming pool emptied of water, close three-quarter view with surrounding patterned tiles.",
+    "A close low view of irregular dark stones with turquoise water rushing around them, no horizon.",
+    "A crowded worktable with tangled blue and coral threads, bits of ribbon and several wooden spools, overhead view.",
+    "Afternoon shadows of a hanging kitchen whisk and wire basket across a deep ochre interior plaster wall, the objects partly out of frame.",
+    "A red enamel bowl partly submerged in shallow water; ripples distort its visible lower half and the riverbed.",
+    "A small blue toy boat on the vast concrete floor of an empty indoor hall, distant overhead perspective, no people.",
+    "A partial view through a rain-streaked window, foreground amber curtain and window frame, fragments of a stationary parked bicycle outside.",
+    "Several mismatched everyday objects crowded on a shelf: a striped cup, folded glove, tin box and a pebble, close oblique framing.",
+    "Loose sheets of coral and cream laundry twisting in gusts above an enclosed courtyard, cropped architecture and moving folds.",
+    "A visibly mended chipped ceramic jug on a clutter-free cobalt kitchen tabletop, visible simple repair seam, irregular painted proportions."
+  ]
+}
