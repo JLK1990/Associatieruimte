@@ -50,6 +50,13 @@
       "minElements": 1
     },
     {
+      "id": "experiment",
+      "category": "experimenteren",
+      "title": "Wil je eens iets uitproberen?",
+      "intro": "Je kunt je ruimte even veranderen en kijken wat er gebeurt. Er is niets dat je hoeft op te lossen.",
+      "minElements": 1
+    },
+    {
       "id": "explore",
       "category": "herinneren",
       "title": "Sta bij één element stil",
@@ -289,5 +296,36 @@
         "made"
       ]
     }
-  ]
+  ],
+  "interventions": [
+    {
+      "id": "possible-direction",
+      "question": "Stel dat dit zich verder ontwikkelt in een richting die voor jou klopt. Hoe zou deze ruimte er dan uitzien?",
+      "minTextElements": 1,
+      "interactionType": "canvas"
+    },
+    {
+      "id": "change-space",
+      "question": "Kies een element. Wat gebeurt er als dit veel meer — of juist veel minder — ruimte krijgt?",
+      "minTextElements": 1,
+      "interactionType": "single-element"
+    },
+    {
+      "id": "temporarily-remove",
+      "question": "Stel dat één element er even niet zou zijn. Wat verandert er dan?",
+      "minTextElements": 2,
+      "interactionType": "hide-element"
+    },
+    {
+      "id": "change-distance",
+      "question": "Kies twee elementen. Wat gebeurt er als je ze dichter bij elkaar of juist verder uit elkaar zet?",
+      "minTextElements": 2,
+      "interactionType": "two-elements"
+    }
+  ],
+  "experiment": {
+    "invitation": "Verander gerust iets in je ruimte om dat uit te proberen.",
+    "reflection": "Wat merk je nu op dat je hiervoor nog niet zag?",
+    "decision": "Wat wil je met deze verandering doen?"
+  }
 }
