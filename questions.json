@@ -36,7 +36,8 @@
         },
         {
           "key": "imageTogether",
-          "text": "Wat komt er bij je op als je dit beeld naast je eerdere associatie legt?"
+          "text": "Wat komt er bij je op als je dit beeld naast je eerdere associatie legt?",
+          "referenceRouteField": 0
         }
       ],
       "collect": true
@@ -64,7 +65,7 @@
       "fields": [
         {
           "key": "memory",
-          "text": "Als je ‘{selectedElement}’ naast je eigen ervaringen legt, wat komt er dan bij je op?"
+          "text": "Ga in gedachten eens bij ‘{selectedElement}’ staan. Wat ervaar je hier?"
         },
         {
           "key": "memoryDetail",
@@ -150,7 +151,8 @@
         },
         {
           "key": "notice",
-          "text": "Kijk nog eens naar die plek. Wat valt je als eerste op?"
+          "text": "Kijk nog eens naar die plek. Wat valt je als eerste op?",
+          "referenceKey": "landscape"
         },
         {
           "key": "other",
@@ -168,11 +170,13 @@
         },
         {
           "key": "animalAction",
-          "text": "Wat doet dat dier?"
+          "text": "Wat doet dat dier?",
+          "referenceKey": "animal"
         },
         {
           "key": "animalNotice",
-          "text": "Wat valt je daaraan op?"
+          "text": "Wat valt je daaraan op?",
+          "referenceKey": "animalAction"
         }
       ]
     },
@@ -186,11 +190,13 @@
         },
         {
           "key": "movementNotice",
-          "text": "Wat valt je op aan die beweging?"
+          "text": "Wat valt je op aan die beweging?",
+          "referenceKey": "movement"
         },
         {
           "key": "movementChange",
-          "text": "Verandert de beweging ergens, of blijft die hetzelfde? (Optioneel)"
+          "text": "Verandert de beweging ergens, of blijft die hetzelfde? (Optioneel)",
+          "referenceKey": "movement"
         }
       ]
     }
@@ -332,18 +338,28 @@
       "label": "Twee woorden laten spreken",
       "minTextElements": 2,
       "interactionType": "dialogue",
-      "xSelection": "Kies het woord dat iets mag zeggen.",
-      "ySelection": "Tegen welk ander woord mag ‘{X}’ iets zeggen?",
+      "xSelection": "Kies een woord waar je gevoelsmatig even bij wilt gaan staan.",
+      "ySelection": "Kijk vanaf ‘{X}’ naar de andere woorden in je ruimte. Welk woord trekt je aandacht?",
       "field": {
         "key": "say",
-        "text": "Als ‘{X}’ iets tegen ‘{Y}’ kon zeggen, wat zou dat dan zijn?"
+        "text": "Als ‘{X}’ vanuit deze plek iets tegen ‘{Y}’ kon zeggen, wat zou dat dan zijn?"
       },
       "replyChoice": "Wil je ‘{Y}’ laten reageren?",
       "replyField": {
         "key": "reply",
         "text": "En als ‘{Y}’ daarop kon reageren, wat zou het dan zeggen?"
       },
-      "collectionInvitation": "Zit er iets in wat er net ontstond dat je aan je Associatieruimte wilt toevoegen?"
+      "collectionInvitation": "Zit er iets in wat er net ontstond dat je aan je Associatieruimte wilt toevoegen?",
+      "hereField": {
+        "key": "here",
+        "text": "Ga in gedachten eens bij ‘{X}’ staan. Blijf daar even. Wat ervaar je hier?"
+      },
+      "lookChoice": "Vanaf dit woord naar de andere woorden kijken",
+      "lookField": {
+        "key": "look",
+        "text": "Blijf nog even bij ‘{X}’ staan en kijk naar ‘{Y}’. Wat ervaar je als je vanaf hier naar ‘{Y}’ kijkt?"
+      },
+      "sayChoice": "Vanuit deze plek iets laten zeggen"
     },
     {
       "id": "size",
