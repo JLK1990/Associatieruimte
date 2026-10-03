@@ -1,0 +1,61 @@
+const assert=require('node:assert/strict'),vm=require('node:vm');
+const {Element,questions,script,setViewport}=require('./flow.cjs');
+const key='associatieruimte.v01';
+const clone=x=>JSON.parse(JSON.stringify(x));
+const xText='eenvoud $& {Y} {selectedElement} <b>',yText='gezelligheid $& {X}';
+async function setup(count,viewport='desktop',random=0){
+ setViewport(viewport==='mobile'?350:872,viewport==='mobile'?380:500);
+ const app=new Element('main'),notice=new Element('p'),erase=new Element('button');
+ const associations=Array.from({length:count},(_,i)=>({id:'word-'+i,text:i===0?xText:i===1?yText:'eigen '+i,x:35+i*15,y:40,size:1,color:i===0?'#aabbcc':undefined}));
+ const stored={step:4,stepId:'research',originalQuestion:'Mijn vraag',entryType:'Ik zit ergens mee',answers:{landscape:'Mijn eigen antwoord'},associations,activeId:null,selectedElement:null,firstSpaceStep:'space',routeId:'landscape',imageIds:['image-01','image-02','image-03']};
+ const storage={[key]:JSON.stringify(stored)},math=Object.create(Math);math.random=()=>random;
+ let ctx={Math:math,document:{querySelector:q=>({'#app':app,'#erase':erase,'#storage-notice':notice})[q],createElement:t=>new Element(t)},localStorage:{getItem:k=>storage[k]||null,setItem:(k,v)=>storage[k]=v,removeItem:k=>delete storage[k]},crypto:require('node:crypto').webcrypto,window:{scrollTo(){}},fetch:async()=>({ok:true,json:async()=>questions})};
+ const boot=async()=>{ctx={...ctx};vm.createContext(ctx);vm.runInContext(script,ctx);await new Promise(r=>setImmediate(r));};await boot();
+ const state=()=>JSON.parse(storage[key]);
+ const click=text=>{const n=app.querySelectorAll('button').find(n=>n.textContent===text);assert(n,'Button: '+text);n.listeners.click();};
+ const select=(index,id)=>{const n=app.querySelectorAll('select')[index];assert(n);n.value=id;n.listeners.change();};
+ const answer=(index,text)=>{const n=app.querySelectorAll('textarea')[index];assert(n);n.value=text;n.listeners.input();};
+ const add=(text,color)=>{const input=app.querySelectorAll('input').find(n=>n.attrs['aria-label']==='Nieuw woord of korte zin');assert(input);input.value=text;if(color){const c=app.querySelectorAll('input').find(n=>n.attrs['aria-label']==='Kleur voor nieuw woord of korte zin');c.value=color;c.listeners.input();}app.querySelector('form').listeners.submit({preventDefault(){}});};
+ return {app,state,click,select,answer,add,boot,storage,get ctx(){return ctx;}};
+}
+function canvasWorks(h){
+ const space=h.app.querySelector('.canvas');assert(space);assert(!space.attrs.class.includes('readonly'),'Experience must use interactive canvas');assert(h.app.querySelector('.tools'));
+ const word=space.querySelector('.word');assert.equal(word.tag,'button');word.listeners.click();const before=parseFloat(word.style.fontSize);h.click('Groter');assert(parseFloat(word.style.fontSize)>before);h.click('Kleiner');assert(Math.abs(parseFloat(word.style.fontSize)-before)<1e-6);
+ const left=parseFloat(word.style.left);word.listeners.pointerdown({button:0,clientX:100,clientY:100,pointerId:1});word.listeners.pointermove({clientX:130,clientY:115});assert(parseFloat(word.style.left)>left);word.listeners.pointerup();
+ const color=h.app.querySelectorAll('input').find(n=>n.attrs['aria-label']==='Kleur van geselecteerd element');assert(color);color.value='#112233';color.listeners.input();assert.equal(h.state().associations[0].color,'#112233');
+}
+function noOldFlow(h){for(const text of ['Stel dat dit zich verder ontwikkelt in een richting die voor jou klopt','Zo laten','Terug naar hoe het was','Nog even verder veranderen','Wat merk je nu op dat je hiervoor nog niet zag?'])assert(!h.app.textContent.includes(text),text);}
+function finish(h){h.click('Verder');assert.equal(h.app.querySelector('h1').textContent,'Sta bij één element stil');h.click('Verder');h.click('Verder');h.click('Verder');h.click('Verder');assert.equal(h.app.querySelector('h1').textContent,'Dit ontstond er onderweg');assert.equal(h.app.querySelectorAll('a').find(n=>n.textContent==='Kennismaken').attrs.href,questions.contactLinks.introduction);noOldFlow(h);}
+(async()=>{
+ assert(!questions.interventions&&!questions.experiment);assert(!questions.steps.some(s=>s.id==='experiment'));assert.equal(questions.steps[4].id,'research');assert.equal(questions.steps[3].id,'space');assert.equal(questions.steps[5].id,'explore');
+ const zero=await setup(0);assert.equal(zero.app.querySelector('h1').textContent,'Terug naar je beginvraag');assert.equal(zero.state().research,null);
+ for(const viewport of ['desktop','mobile']){
+  const single=await setup(1,viewport);assert.deepEqual(single.app.querySelector('.choices').querySelectorAll('button').map(n=>n.textContent),['Bij een woord gaan staan','Groot en klein ervaren']);single.click('Verder');assert.equal(single.app.querySelector('h1').textContent,'Sta bij één element stil');
+  const pair=await setup(2,viewport);assert.equal(pair.app.querySelector('.choices').querySelectorAll('button').length,3);
+  // Standing: literal user words, optional relation, optional reverse, no automatic collecting.
+  const a=await setup(2,viewport);a.click('Bij een woord gaan staan');assert.equal(a.app.querySelectorAll('textarea').length,0);a.select(0,'word-0');assert.equal(a.app.querySelectorAll('textarea')[0].attrs['aria-label'],`Ga in gedachten eens bij ‘${xText}’ staan. Blijf daar even. Wat ervaar je hier?`);canvasWorks(a);a.answer(0,'Niets');a.answer(1,'Geen idee');assert.equal(a.state().associations.length,2);assert(a.app.textContent.includes('Komt er, terwijl je hier staat, nog iets op'));a.add('vertrouwen','#8844aa');assert.equal(a.state().associations.length,3);assert(a.app.querySelector('.canvas').querySelectorAll('.word').some(n=>n.textContent==='vertrouwen'));assert.equal(a.state().associations.at(-1).color,'#8844aa');
+  a.click('Vanaf dit woord naar een ander woord kijken');assert(a.app.querySelectorAll('select')[1].attrs['aria-label'].includes(xText));assert(!a.app.querySelectorAll('select')[1].querySelectorAll('option').some(n=>n.attrs.value==='word-0'));a.select(1,'word-1');assert.equal(a.app.querySelector('textarea').attrs['aria-label'],`Blijf bij ‘${xText}’ staan en kijk naar ‘${yText}’. Wat ervaar je?`);a.answer(0,'Een eigen ervaring');a.click('Vanaf het andere woord terugkijken');assert.equal(a.app.querySelector('textarea').attrs['aria-label'],`Ga nu eens gevoelsmatig bij ‘${yText}’ staan en kijk terug naar ‘${xText}’. Hoe is het vanaf deze kant?`);canvasWorks(a);await a.boot();assert(a.state().research.reverse);assert.equal(a.state().research.xId,'word-0');assert.equal(a.state().research.yId,'word-1');noOldFlow(a);finish(a);
+  // Optional look/reverse are not required, even with only one word or blank answers.
+  const aSkip=await setup(1,viewport);aSkip.click('Bij een woord gaan staan');aSkip.select(0,'word-0');assert(!aSkip.app.querySelectorAll('button').some(n=>n.textContent==='Vanaf dit woord naar een ander woord kijken'));finish(aSkip);
+  // Dialogue: X -> Y; a response is absent until expressly chosen.
+  const b=await setup(2,viewport);b.click('Twee woorden laten spreken');b.select(0,'word-0');b.select(1,'word-1');assert.equal(b.app.querySelectorAll('textarea').length,1);assert.equal(b.app.querySelector('textarea').attrs['aria-label'],`Als ‘${xText}’ iets tegen ‘${yText}’ kon zeggen, wat zou dat dan zijn?`);b.answer(0,'Alles is de eerste keer spannend. Heb vertrouwen!');assert.equal(b.state().associations.length,2);assert(!b.app.querySelectorAll('textarea').some(n=>n.attrs['aria-label'].startsWith('En als')));canvasWorks(b);b.click(`Wil je ‘${yText}’ laten reageren?`);assert.equal(b.app.querySelectorAll('textarea')[1].attrs['aria-label'],`En als ‘${yText}’ daarop kon reageren, wat zou het dan zeggen?`);b.answer(1,'');b.add('een eigen korte zin');assert(b.app.querySelector('.canvas').querySelectorAll('.word').some(n=>n.textContent==='een eigen korte zin'));await b.boot();assert.equal(b.app.querySelectorAll('textarea')[0].value,'Alles is de eerste keer spannend. Heb vertrouwen!');assert(b.state().research.reply);noOldFlow(b);finish(b);
+  const bSkip=await setup(2,viewport);bSkip.click('Twee woorden laten spreken');bSkip.select(0,'word-0');bSkip.select(1,'word-1');finish(bSkip);
+  // Both size contrasts; each phase is genuinely interactive and body fields accept anything/empty.
+  for(const [variant,random] of [['more',0],['less',.9]]){
+   const c=await setup(1,viewport,random);c.click('Groot en klein ervaren');assert.equal(c.state().research.variant,variant);vm.runInContext('render();render()',c.ctx);assert.equal(c.state().research.variant,variant);c.select(0,'word-0');const config=questions.researchRoutes.find(r=>r.id==='size').variants[variant];
+   for(const [index,phase] of config.phases.entries()){
+    assert.equal(c.state().research.phase,index);assert(c.app.textContent.includes(phase.instruction.replaceAll('{X}',()=>xText)));canvasWorks(c);c.app.querySelector('.word').listeners.click();if(phase.id==='large')c.click('Groter');else if(phase.id==='small')c.click('Kleiner');const size=c.state().associations[0].size;assert(size>0);for(let i=0;i<c.app.querySelectorAll('textarea').length;i++)c.answer(i,i===0?'niets':'');const fields=Object.entries(c.state().answers).filter(([key])=>key.startsWith('research.'));assert(fields.length);assert.equal(c.state().associations.length,1);
+    if(phase.nextLabel)c.click(phase.nextLabel);
+   }
+   assert(c.app.textContent.includes(`Geef ‘${xText}’ nu de grootte die op dit moment voor jou klopt.`));c.add('rust','#446688');assert.equal(c.state().associations.length,2);await c.boot();assert.equal(c.state().research.phase,2);assert.equal(c.state().research.variant,variant);noOldFlow(c);finish(c);
+   const skip=await setup(1,viewport,random);skip.click('Groot en klein ervaren');skip.select(0,'word-0');finish(skip);
+  }
+  // Changing X preserves old answers by ID; deleted selections do not leave impossible prompts.
+  const changed=await setup(2,viewport);changed.click('Bij een woord gaan staan');changed.select(0,'word-0');changed.answer(0,'Eerste ervaring');changed.select(0,'word-1');assert.equal(changed.app.querySelector('textarea').value,'');changed.select(0,'word-0');assert.equal(changed.app.querySelector('textarea').value,'Eerste ervaring');changed.app.querySelector('.word').listeners.click();changed.click('Verwijderen');assert.equal(changed.state().research.xId,null);assert.equal(changed.app.querySelectorAll('textarea').length,0);
+  const missing=await setup(2,viewport);missing.click('Twee woorden laten spreken');missing.select(0,'word-0');missing.select(1,'word-1');missing.app.querySelector('.word').listeners.click();missing.click('Verwijderen');assert.equal(missing.app.querySelectorAll('textarea').length,0);assert(!missing.app.querySelector('select'));missing.click('Verder');assert.equal(missing.app.querySelector('h1').textContent,'Sta bij één element stil');
+ }
+ // Resume users who were on the old experiment step, without showing its old question or decision.
+ const legacy=await setup(2);const saved=legacy.state();saved.stepId='experiment';saved.experiment={selectedId:'possible-direction',phase:'reflect',offeredIds:['possible-direction','change-space'],snapshot:{associations:clone(saved.associations)}};delete saved.research;legacy.storage[key]=JSON.stringify(saved);await legacy.boot();assert.equal(legacy.state().stepId,'research');assert.equal(legacy.state().research.routeId,null);assert.equal(legacy.app.querySelector('.choices').querySelectorAll('button').length,3);noOldFlow(legacy);
+ for(const [step,title] of [[4,'Sta bij één element stil'],[5,'Kijk opnieuw naar je ruimte'],[6,'Terug naar je beginvraag'],[7,'Een nieuwe vraag?'],[8,'Dit ontstond er onderweg']]){const h=await setup(2);const saved=h.state();delete saved.stepId;saved.step=step;h.storage[key]=JSON.stringify(saved);await h.boot();assert.equal(h.app.querySelector('h1').textContent,title);}
+ console.log('PASS research: standing, X→Y/reverse, dialogue/optional reply, both size contrasts, interactive canvas in every phase, manual additions, literal words, no forced insight, resume/migration and full finish on desktop/mobile');
+})().catch(e=>{console.error(e);process.exitCode=1;});
