@@ -15,16 +15,17 @@ function initialiseChoices(previous){
  }
  const pool=content.imagePool;
  if(!Array.isArray(state.imageIds)||state.imageIds.length!==3||new Set(state.imageIds).size!==3||!state.imageIds.every(id=>pool.some(image=>image.id===id))){
-  const signature=ids=>[...ids].sort().join('|');
-  const candidates=[];
-  for(let a=0;a<pool.length-2;a++)for(let b=a+1;b<pool.length-1;b++)for(let c=b+1;c<pool.length;c++){
-   const trio=[pool[a],pool[b],pool[c]],ids=trio.map(image=>image.id);
-   if(signature(ids)===signature(previous?.imageIds||[]))continue;
-   const score=trio[0].variation.reduce((sum,_,i)=>sum+new Set(trio.map(image=>image.variation[i])).size,0);
-   candidates.push({ids,score});
+  const previousIds=new Set(previous?.imageIds??[]);
+  const remaining=pool.filter(image=>!previousIds.has(image.id));
+  // Prefer unseen images; reuse previous images only if the pool is too small.
+  const candidates=[...remaining];
+  if(candidates.length<3)candidates.push(...pool.filter(image=>previousIds.has(image.id)));
+  state.imageIds=[];
+  while(state.imageIds.length<3){
+   const available=remaining.length>=3?candidates:candidates.filter(image=>!previousIds.has(image.id));
+   const image=choose(available.length?available:candidates);
+   state.imageIds.push(image.id);candidates.splice(candidates.indexOf(image),1);
   }
-  const best=Math.max(...candidates.map(candidate=>candidate.score));
-  state.imageIds=choose(candidates.filter(candidate=>candidate.score===best)).ids;
   if(!state.imageIds.includes(state.selectedImage))state.selectedImage=null;
  }
  try{localStorage.setItem(CHOICES_KEY,JSON.stringify({routeId:state.routeId,imageIds:state.imageIds}));}catch{}
