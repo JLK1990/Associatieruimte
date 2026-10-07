@@ -32,12 +32,14 @@
       "fields": [
         {
           "key": "imageAssociation",
-          "text": "Als ik naar dit beeld kijk, denk ik aan…"
+          "text": "Als ik naar dit beeld kijk, denk ik aan…",
+          "collectible": true
         },
         {
           "key": "imageTogether",
           "text": "Wat komt er bij je op als je dit beeld naast je eerdere associatie legt?",
-          "referenceRouteField": 0
+          "referenceRouteField": 0,
+          "collectible": true
         }
       ],
       "collect": true
@@ -147,16 +149,19 @@
       "fields": [
         {
           "key": "landscape",
-          "text": "Als datgene wat je hebt ingebracht een plek, landschap of omgeving zou zijn, wat verschijnt er dan als eerste?"
+          "text": "Als datgene wat je hebt ingebracht een plek, landschap of omgeving zou zijn, wat verschijnt er dan als eerste?",
+          "collectible": true
         },
         {
           "key": "notice",
           "text": "Kijk nog eens naar die plek. Wat valt je als eerste op?",
-          "referenceKey": "landscape"
+          "referenceKey": "landscape",
+          "collectible": true
         },
         {
           "key": "other",
-          "text": "Is er nog iets anders dat je aandacht trekt? (Optioneel)"
+          "text": "Is er nog iets anders dat je aandacht trekt? (Optioneel)",
+          "collectible": true
         }
       ]
     },
@@ -166,17 +171,20 @@
       "fields": [
         {
           "key": "animal",
-          "text": "Als wat je bezighoudt een dier zou zijn, welk dier komt er dan als eerste bij je op?"
+          "text": "Als wat je bezighoudt een dier zou zijn, welk dier komt er dan als eerste bij je op?",
+          "collectible": true
         },
         {
           "key": "animalAction",
           "text": "Wat doet dat dier?",
-          "referenceKey": "animal"
+          "referenceKey": "animal",
+          "collectible": true
         },
         {
           "key": "animalNotice",
           "text": "Wat valt je daaraan op?",
-          "referenceKey": "animalAction"
+          "referenceKey": "animalAction",
+          "collectible": true
         }
       ]
     },
@@ -186,17 +194,20 @@
       "fields": [
         {
           "key": "movement",
-          "text": "Als wat je bezighoudt een beweging zou zijn, hoe zou die bewegen?"
+          "text": "Als wat je bezighoudt een beweging zou zijn, hoe zou die bewegen?",
+          "collectible": true
         },
         {
           "key": "movementNotice",
           "text": "Wat valt je op aan die beweging?",
-          "referenceKey": "movement"
+          "referenceKey": "movement",
+          "collectible": true
         },
         {
           "key": "movementChange",
           "text": "Verandert de beweging ergens, of blijft die hetzelfde? (Optioneel)",
-          "referenceKey": "movement"
+          "referenceKey": "movement",
+          "collectible": true
         }
       ]
     }
