@@ -66,11 +66,21 @@ function elementForm(){
  return form;
 }
 function collectibleAnswers(){
- // Eligibility is explicit flow metadata; texts are offered whole and unchanged.
- const route=content.routes.find(route=>route.id===state.routeId);
- const fields=[...(route?.fields??[]),...(steps.find(step=>step.id==='images')?.fields??[])];
- const answers=fields.filter(field=>field.collectible).map(field=>state.answers[field.key]).filter(text=>typeof text==='string'&&text.trim());
- return [...new Set(answers)];
+ // Known free-text fields and stored research scopes contain user material, not UI choices.
+ const fields=[...content.routes.flatMap(route=>route.fields??[]),...steps.flatMap(step=>step.fields??[])];
+ const answers=fields.map(field=>field.key==='originalQuestion'?state.originalQuestion:state.answers[field.key]);
+ for(const [key,text] of Object.entries(state.answers)){
+  const [prefix,routeId,xId,yId,variant,fieldKey,...extra]=key.split('.');
+  if(prefix!=='research'||extra.length||!xId)continue;
+  const route=content.researchRoutes.find(route=>route.id===routeId);
+  if(!route)continue;
+  const definitions=route.variants
+   ?route.variants[variant]?.phases.flatMap(phase=>[...(phase.beforeFields??[]),...(phase.fields??[])])??[]
+   :[...(route.fields??[]),route.hereField,route.lookField,route.reverseField,route.field,route.replyField].filter(Boolean);
+  if(definitions.some(field=>field.key===fieldKey))answers.push(text);
+ }
+ answers.push(...state.associations.filter(a=>!a.shape).map(a=>a.text));
+ return [...new Set(answers.filter(text=>typeof text==='string'&&text.trim()))];
 }
 function fillAnswerSuggestions(panel){
  const answers=collectibleAnswers();panel.hidden=!answers.length;panel.replaceChildren();
@@ -90,7 +100,7 @@ function answerSuggestions(){const panel=el('section',null,{class:'answer-sugges
 function collector(host,inSpace=false,invitation=null,offerAnswers=false){
  const box=el('section',null,{class:'collector'});
  if(!state.associations.some(a=>!a.shape))box.append(el('p','Je kunt hier woorden of korte zinnen verzamelen die voor jou tijdens het onderzoeken betekenis krijgen. Neem iets mee uit wat ontstaat, of voeg zelf iets toe dat voor jou erbij hoort.',{class:'message'}));
- if(offerAnswers){box.append(answerSuggestions(),el('p','Komt er nog iets anders bij je op?'));}
+ if(offerAnswers){if(invitation)box.append(el('p',invitation));box.append(answerSuggestions(),el('p','Komt er nog iets anders bij je op?'));}
  else box.append(el('p',invitation??(inSpace?'Wil je hier nog iets aan toevoegen?':'Wil je iets hiervan meenemen naar je Associatieruimte?')));
  box.append(elementForm());
  const cloud=el('div',null,{class:'word-cloud','aria-label':'Wat onderweg is ontstaan'});
@@ -159,7 +169,7 @@ function researchView(host){
   host.append(choices);save();return;
  }
  if(words.length<route.minTextElements){
-  host.append(el('p','Je kunt hier iets toevoegen of gewoon verdergaan.'));canvas(host);collector(host,true,route.collectionInvitation);save();return;
+  host.append(el('p','Je kunt hier iets toevoegen of gewoon verdergaan.'));canvas(host);collector(host,true,route.collectionInvitation,true);save();return;
  }
  if(route.variants&&!route.variants[research.variant])research.variant=choose(Object.keys(route.variants));
  const variant=route.variants?.[research.variant];
@@ -193,7 +203,7 @@ function researchView(host){
  }
  // Every experience screen reuses the existing interactive canvas, never a readonly copy.
  canvas(host);
- if(research.xId&&(route.interactionType!=='dialogue'||(research.yId&&research.phase===2)))collector(host,true,route.collectionInvitation);
+ if(research.xId&&(route.interactionType!=='dialogue'||(research.yId&&research.phase===2)))collector(host,true,route.collectionInvitation,true);
  if(research.xId&&variant?.phases[research.phase].nextLabel)host.append(button(variant.phases[research.phase].nextLabel,()=>{research.phase+=1;state.activeId=research.xId;save();render();}));
  save();
 }
@@ -207,7 +217,7 @@ if(s.viewCanvas)canvas(app,true);
 if(s.id==='return'){app.append(el('p','Je kwam binnen met:'),el('blockquote',state.originalQuestion));}
 if(s.id==='explore'){const label=el('label',null,{class:'field'});label.append(el('span','Welk element wil je onderzoeken?'));const select=el('select',null,{'aria-label':'Element om te onderzoeken'});select.append(el('option','Geen element geselecteerd',{value:''}));state.associations.filter(a=>!a.shape).forEach(a=>{const o=el('option',a.text,{value:a.id});if(a.text===state.selectedElement)o.selected=true;select.append(o);});select.addEventListener('change',()=>{state.selectedElement=state.associations.find(a=>a.id===select.value)?.text??null;state.answers.memory='';state.answers.memoryDetail='';save();render();});label.append(select);app.append(label);}
 if(s.fields && (s.id!=='explore'||state.selectedElement!==null) && (s.id!=='images'||state.selectedImage!==null))s.fields.forEach(f=>app.append(field(f)));
-if(s.collect || (s.canvas&&!s.readonly))collector(app,Boolean(s.canvas),null,Boolean(s.route||s.id==='images'||(s.canvas&&!s.readonly)));
+if(s.collect || (s.canvas&&!s.readonly))collector(app,Boolean(s.canvas),null,true);
 if(s.id==='finish'){app.append(el('h2','Wat je zelf meenam'),el('div',state.answers.reflection||'',{class:'literal'}));if(state.answers.newQuestion)app.append(el('h2','Een vraag die ontstond'),el('div',state.answers.newQuestion,{class:'literal'}));for(const item of s.contact??[]){const section=el('section',null,{class:'contact'});section.append(el('h2',item.title),el('p',item.text,{class:'intro'}));const destination=content.contactLinks?.[item.urlKey]??'';if(/^(https?:\/\/|mailto:)/i.test(destination)){section.append(el('a',item.label,{href:destination,class:'contact-link'}));}else{section.append(el('button',item.label,{type:'button',disabled:'','aria-disabled':'true',title:'Deze link is nog niet ingesteld.'}));}app.append(section);}app.append(button('Opnieuw beginnen',reset,{class:'primary'}));}else{const nav=el('nav',null,{class:'navigation','aria-label':'Stappen'});if(state.step>0)nav.append(button('Terug',()=>go(-1)));else nav.append(el('span',''));nav.append(button('Verder',()=>{if(s.id==='entry'&&(!state.entryType||!state.originalQuestion.trim())){let msg=app.querySelector('.validation');if(!msg){msg=el('p','Kies een ingang en vul in waar het over gaat. Een kort antwoord is genoeg.',{role:'status',class:'validation'});nav.before(msg);}return;}go(1);},{class:'primary'}));app.append(nav);}
 }
 function go(delta){state.step=availableStep(bound(state.step+delta,0,steps.length-1),delta);save();render();app.querySelector('h1').focus();window.scrollTo({top:0,behavior:'smooth'});}
