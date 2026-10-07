@@ -40,5 +40,47 @@
       "A loose staggered pattern of uneven small quadrilateral patches, warm yellow and muted blue, fading into a larger ochre zone with one unfilled shape; no recognizable grid object or text.",
       "An oversized curved incomplete arc intersecting a low jagged mass, near-black violet with turquoise and coral highlights on pale apricot; deep spatial ambiguity, one tiny detached mark far from the mass, no identifiable scene."
     ]
+  },
+  "reviewedReplacements": {
+    "style": "Use case: stylized-concept. Generate ONE standalone square painting for an adult open-ended associative exercise, 1024x1024, not a collage. Match expressive colorful handmade paintings of everyday scenes: lively broken gouache/acrylic brush strokes, visibly rough paint texture, irregular painted contours, rich varied colors, playful adult visual language. More recognizable visual anchors than pure abstract art; do not dissolve everything into anonymous paint marks. Avoid smooth digital rendering, photorealism, text, labels, writing, logos, illustrative moral messages, prescribed emotion, motivational symbolism, paths, stairs, doors, mountain peaks, light-at-end-of-tunnel. No symbolism or interpretation. Show a tangible but open-ended scene with no explanation. ",
+    "scenes": [
+      {
+        "id": 11,
+        "scene": "Low eye-level view in a dense stand of reeds and tall grass, with a small patch of flattened grass visible between overlapping stems. Ochre seedheads, cobalt and green stems, coral touches, no path, water or scenic horizon. The cropped framing makes the scale uncertain. Natural material gives a recognizable anchor but no narrative."
+      },
+      {
+        "id": 12,
+        "scene": "A small dark animal seen only as hindquarters, curved back and a long tail disappearing behind a stack of irregular blue and ochre folded cushions in an ordinary room. The animal's species is uncertain, no face or human expression. Ground-level oblique composition, coral and cream floor, no message, no cute cartoon treatment."
+      },
+      {
+        "id": 15,
+        "scene": "Close oblique view beneath an old wooden table, showing mismatched chair legs and a single loose rounded wheel resting among them. Warm painted wood with teal/cobalt marks, apricot floor, uneven shadows, cropped framing with space extending sideways. A strange everyday arrangement, no people, no storyline. Not a chair standing alone like a prior image."
+      },
+      {
+        "id": 16,
+        "scene": "A cropped overhead view of an open circular sieve-like mesh holding several irregular pale fragments, with one small cobalt feather caught at its edge. Woven structure remains tangible; uncertain whether fragments are seeds, shells or scraps. Ochre and lavender ground, airy composition, not a cluttered worktable, no symbolic explanation."
+      },
+      {
+        "id": 17,
+        "scene": "A curved greenish translucent sheet draped over rough angular blocks; part of one block is visible beneath it and part concealed. Paint this as a material study with tangible edges and spatial depth, not abstract color planes. Ambiguous scale, coral/ochre block edges, turquoise highlights and indigo shadows; no identifiable product, no text."
+      },
+      {
+        "id": 18,
+        "scene": "Side view of a narrow shallow tray of dark soil containing an unexpectedly large curled striped leaf and several tiny pale mushrooms at unequal distances. Purple and ochre background, cropped tray edges, almost tabletop-scale but uncertain. Clearly organic details, no lush landscape, no stream, no growing-plant success symbolism."
+      },
+      {
+        "id": 19,
+        "scene": "A close sideways view of a pale woven net stretched irregularly between two worn red and blue metal supports, with a few folds sagging and an oval dark patch beyond. It could be a fragment of equipment or a boundary, no doorway or window, no horizon. Tangible mesh and supports with uncertain overall setting, colorful expressive painting."
+      }
+    ],
+    "files": [
+      "image-11-v2.webp",
+      "image-12-v2.webp",
+      "image-15-v2.webp",
+      "image-16-v2.webp",
+      "image-17-v2.webp",
+      "image-18-v2.webp",
+      "image-19-v2.webp"
+    ]
   }
 }

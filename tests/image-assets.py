@@ -36,6 +36,7 @@ try:
     preview = get('images/candidates/preview.html')[0].decode()
     paths = re.findall(r'<img src="([^"]+)"', preview)
     assert len(paths) == 20
+    assert set(paths) == {pathlib.PurePosixPath(im["src"]).name for im in config["imagePool"]}
     for path in paths: get('images/candidates/' + path)
     print('PASS image assets: all 20 configured paths and preview images return HTTP 200, image/webp, 1024x1024')
 finally:
