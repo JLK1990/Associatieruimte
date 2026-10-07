@@ -1,9 +1,9 @@
 'use strict';
 const STORAGE_KEY = 'associatieruimte.v01';
 const app = document.querySelector('#app');
-const blank = () => ({step:0,entryType:'',originalQuestion:'',answers:{},associations:[],selectedImage:null,selectedElement:null,activeId:null,firstSpaceStep:null,routeId:null,imageIds:null,stepId:null,research:null});
+const blank = () => ({step:0,entryType:'',originalQuestion:'',answers:{},associations:[],selectedImage:null,flowVersion:2,activeId:null,firstSpaceStep:null,routeId:null,imageIds:null,stepId:null,research:null});
 let state = blank(), steps = [], content = {};
-try { const saved = JSON.parse(localStorage.getItem(STORAGE_KEY)); if(saved && Array.isArray(saved.associations) && saved.answers && typeof saved.originalQuestion === 'string') state = {...state,...saved}; } catch { /* A fresh session also works without storage. */ }
+try { const saved = JSON.parse(localStorage.getItem(STORAGE_KEY)); if(saved && Array.isArray(saved.associations) && saved.answers && typeof saved.originalQuestion === 'string') state = {...state,...saved,flowVersion:saved.flowVersion??0}; } catch { /* A fresh session also works without storage. */ }
 // Only choices are retained between sessions, never answers or associations.
 const CHOICES_KEY = STORAGE_KEY+'.choices';
 function choose(items){return items[Math.floor(Math.random()*items.length)];}
@@ -15,16 +15,17 @@ function initialiseChoices(previous){
  }
  const pool=content.imagePool;
  if(!Array.isArray(state.imageIds)||state.imageIds.length!==3||new Set(state.imageIds).size!==3||!state.imageIds.every(id=>pool.some(image=>image.id===id))){
-  const signature=ids=>[...ids].sort().join('|');
-  const candidates=[];
-  for(let a=0;a<pool.length-2;a++)for(let b=a+1;b<pool.length-1;b++)for(let c=b+1;c<pool.length;c++){
-   const trio=[pool[a],pool[b],pool[c]],ids=trio.map(image=>image.id);
-   if(signature(ids)===signature(previous?.imageIds||[]))continue;
-   const score=trio[0].variation.reduce((sum,_,i)=>sum+new Set(trio.map(image=>image.variation[i])).size,0);
-   candidates.push({ids,score});
+  const previousIds=new Set(previous?.imageIds??[]);
+  const remaining=pool.filter(image=>!previousIds.has(image.id));
+  // Prefer unseen images; reuse previous images only if the pool is too small.
+  const candidates=[...remaining];
+  if(candidates.length<3)candidates.push(...pool.filter(image=>previousIds.has(image.id)));
+  state.imageIds=[];
+  while(state.imageIds.length<3){
+   const available=remaining.length>=3?candidates:candidates.filter(image=>!previousIds.has(image.id));
+   const image=choose(available.length?available:candidates);
+   state.imageIds.push(image.id);candidates.splice(candidates.indexOf(image),1);
   }
-  const best=Math.max(...candidates.map(candidate=>candidate.score));
-  state.imageIds=choose(candidates.filter(candidate=>candidate.score===best)).ids;
   if(!state.imageIds.includes(state.selectedImage))state.selectedImage=null;
  }
  try{localStorage.setItem(CHOICES_KEY,JSON.stringify({routeId:state.routeId,imageIds:state.imageIds}));}catch{}
@@ -42,11 +43,17 @@ function updateAnswerReference(node){
 }
 function answerReference(key){const node=el('p',null,{class:'message answer-reference'});node.style.whiteSpace='pre-wrap';node.style.overflowWrap='anywhere';node.dataset.answerKey=key;updateAnswerReference(node);return node;}
 function refreshAnswerReferences(){for(const node of app.querySelectorAll('.answer-reference'))updateAnswerReference(node);}
-function field(f){const text=f.literal?f.text:f.text.replaceAll('{selectedElement}',()=>state.selectedElement ?? '');const label=el('label',null,{class:'field'});label.append(el('span',text));const referenceKey=f.referenceKey??content.routes.find(route=>route.id===state.routeId)?.fields[f.referenceRouteField]?.key;if(referenceKey)label.append(answerReference(referenceKey));const input=el('textarea',null,{'aria-label':text});input.value=f.key==='originalQuestion'?state.originalQuestion:(state.answers[f.key]??'');input.addEventListener('input',()=>{if(f.key==='originalQuestion')state.originalQuestion=input.value;else state.answers[f.key]=input.value;save();refreshAnswerReferences();});label.append(input);return label;}
-function collector(host,inSpace=false,invitation=null){
- const box=el('section',null,{class:'collector'});
- box.append(el('p',invitation??(inSpace?'Wil je hier nog iets aan toevoegen?':'Wil je iets hiervan meenemen naar je Associatieruimte?')));
- const form=el('form',null),input=el('input',null,{'aria-label':'Nieuw woord of korte zin',placeholder:'Een woord of korte zin'});
+function field(f){const text=f.text;const label=el('label',null,{class:'field'});label.append(el('span',text));const referenceKey=f.referenceKey??content.routes.find(route=>route.id===state.routeId)?.fields[f.referenceRouteField]?.key;if(referenceKey)label.append(answerReference(referenceKey));const input=el('textarea',null,{'aria-label':text});input.value=f.key==='originalQuestion'?state.originalQuestion:(state.answers[f.key]??'');input.addEventListener('input',()=>{if(f.key==='originalQuestion')state.originalQuestion=input.value;else state.answers[f.key]=input.value;save();refreshAnswerReferences();refreshAnswerSuggestions();});label.append(input);return label;}
+function addElement(text,color){
+ if(!text.trim())return false;
+ const n=state.associations.length,association={id:crypto.randomUUID(),text,x:20+(n%4)*20,y:20+(Math.floor(n/4)%4)*20,size:1};
+ if(color)association.color=color;
+ state.associations.push(association);save();return true;
+}
+function elementForm(){
+ const form=el('form',null,{'aria-label':'Zelf iets toevoegen'});
+ const input=el('input',null,{'aria-label':'Nieuw woord of korte zin',placeholder:'Een woord of korte zin'});
+
  const row=el('div',null,{class:'collect-word'});row.append(input,el('button','Toevoegen',{type:'submit'}));
  const colors=el('div',null,{class:'collect-color'});colors.append(el('p','Heeft dit woord of deze zin voor jou een kleur?'));
  const label=el('label',null,{class:'color-control'});label.append(el('span','Kleur (optioneel)'));
@@ -56,8 +63,48 @@ function collector(host,inSpace=false,invitation=null){
  color.addEventListener('input',()=>{chosenColor=color.value;status.textContent='Eigen kleur gekozen';});
  colors.append(label,button('Geen specifieke kleur',()=>{chosenColor=null;color.value='#fffdf1';status.textContent='Geen specifieke kleur';}),status);
  form.append(row,colors);
- form.addEventListener('submit',e=>{e.preventDefault();if(!input.value.trim())return;const n=state.associations.length;const association={id:crypto.randomUUID(),text:input.value,x:20+(n%4)*20,y:20+(Math.floor(n/4)%4)*20,size:1};if(chosenColor)association.color=chosenColor;state.associations.push(association);save();render();});
- box.append(form);
+ form.addEventListener('submit',e=>{e.preventDefault();if(addElement(input.value,chosenColor))render();});
+ return form;
+}
+function collectibleAnswers(){
+ // Known free-text fields and stored research scopes contain user material, not UI choices.
+ const fields=[...content.routes.flatMap(route=>route.fields??[]),...steps.flatMap(step=>step.fields??[])];
+ const answers=fields.filter(field=>field.key!=='originalQuestion').map(field=>state.answers[field.key]);
+ answers.push(...(content.legacyAnswerKeys??[]).map(key=>state.answers[key]));
+ for(const [key,text] of Object.entries(state.answers)){
+  const [prefix,routeId,xId,yId,variant,fieldKey,...extra]=key.split('.');
+  if(prefix!=='research'||extra.length||!xId)continue;
+  const route=content.researchRoutes.find(route=>route.id===routeId);
+  if(!route)continue;
+  const definitions=route.variants
+   ?route.variants[variant]?.phases.flatMap(phase=>[...(phase.beforeFields??[]),...(phase.fields??[])])??[]
+   :[...(route.fields??[]),route.hereField,route.lookField,route.reverseField,route.field,route.replyField,route.changeField].filter(Boolean);
+  if(definitions.some(field=>field.key===fieldKey))answers.push(text);
+ }
+ answers.push(...state.associations.filter(a=>!a.shape).map(a=>a.text));
+ return [...new Set(answers.filter(text=>typeof text==='string'&&text.trim()))];
+}
+function fillAnswerSuggestions(panel){
+ const answers=collectibleAnswers();panel.hidden=!answers.length;panel.replaceChildren();
+ panel.append(el('p','Dit zijn dingen die je eerder invulde:'));
+ const options=el('div',null,{class:'answer-options','aria-label':'Eerdere eigen antwoorden'});
+ for(const text of answers){
+  const added=state.associations.some(a=>!a.shape&&a.text===text);
+  const option=button('',()=>{if(state.associations.some(a=>!a.shape&&a.text===text))return;if(addElement(text))render();},{class:'answer-chip','aria-label':(added?'Al toegevoegd: ':'Toevoegen: ')+text});
+  option.append(el('span',text,{class:'answer-chip-text'}));
+  if(added){option.setAttribute('disabled','');option.append(el('span','Toegevoegd',{class:'answer-chip-status'}));}
+  options.append(option);
+ }
+ panel.append(options,el('p','Wil je iets hiervan een plek geven in je Associatieruimte?'));
+}
+function refreshAnswerSuggestions(){for(const panel of app.querySelectorAll('.answer-suggestions'))fillAnswerSuggestions(panel);}
+function answerSuggestions(){const panel=el('section',null,{class:'answer-suggestions'});fillAnswerSuggestions(panel);return panel;}
+function collector(host,inSpace=false,invitation=null,offerAnswers=false){
+ const box=el('section',null,{class:'collector'});
+ if(!state.associations.some(a=>!a.shape))box.append(el('p','Je kunt hier woorden of korte zinnen verzamelen die voor jou tijdens het onderzoeken betekenis krijgen. Neem iets mee uit wat ontstaat, of voeg zelf iets toe dat voor jou erbij hoort.',{class:'message'}));
+ if(offerAnswers){if(invitation)box.append(el('p',invitation));box.append(answerSuggestions(),el('p','Komt er nog iets anders bij je op?'));}
+ else box.append(el('p',invitation??(inSpace?'Wil je hier nog iets aan toevoegen?':'Wil je iets hiervan meenemen naar je Associatieruimte?')));
+ box.append(elementForm());
  const cloud=el('div',null,{class:'word-cloud','aria-label':'Wat onderweg is ontstaan'});
  for(const a of state.associations.filter(a=>!a.shape)){const word=el('span',a.text,{class:'cloud-word'});word.style.backgroundColor=a.color||'#fffdf1';cloud.append(word);}
  box.append(cloud);host.append(box);
@@ -84,7 +131,7 @@ function move(space,a,x,y){a.x=bound(a.x+x,12,88);a.y=bound(a.y+y,10,90);const n
 function refreshControls(space,controls){for(const [i,node] of [...space.querySelectorAll('.word')].entries())node.setAttribute('aria-pressed',String(state.associations[i].id===state.activeId));if(!controls)return;controls.replaceChildren();const active=state.associations.find(a=>a.id===state.activeId);controls.append(el('p',active?'Geselecteerd: '+(shapeNames[active.shape]||active.text):'Kies een woord. Gebruik daarna de knoppen om het te verplaatsen of te veranderen.'));if(!active)return;for(const [text,x,y] of [['←',-4,0],['→',4,0],['↑',0,-4],['↓',0,4]])controls.append(button(text,()=>move(space,active,x,y),{'aria-label':{ '←':'Naar links','→':'Naar rechts','↑':'Omhoog','↓':'Omlaag'}[text]}));for(const [text,d] of [['Kleiner',-.15],['Groter',.15]])controls.append(button(text,()=>{active.size=bound(active.size+d,.7,2.4);position(space,space.querySelector('[aria-pressed="true"]'),active);save();}));const label=el('label',null,{class:'color-control'});label.append(el('span','Kleur'));
 const color=el('input',null,{type:'color','aria-label':'Kleur van geselecteerd element'});color.value=active.color||(active.shape?'#b3c5bb':'#fffdf1');
 color.addEventListener('input',()=>{active.color=color.value;position(space,space.querySelector('[aria-pressed="true"]'),active);save();});label.append(color);controls.append(label);
-controls.append(button('Verwijderen',()=>{state.associations=state.associations.filter(a=>a.id!==active.id);if(!active.shape&&state.selectedElement===active.text)state.selectedElement=null;state.activeId=null;save();render();}));}
+controls.append(button('Verwijderen',()=>{state.associations=state.associations.filter(a=>a.id!==active.id);state.activeId=null;save();render();}));}
 if(!readonly){controls=el('div',null,{class:'tools'});host.append(controls);refreshControls(space,controls);
 for(const a of state.associations.filter(a=>a.hidden))host.append(button('Terugzetten: '+(shapeNames[a.shape]||a.text),()=>{delete a.hidden;save();render();}));
 }}
@@ -124,20 +171,22 @@ function researchView(host){
   host.append(choices);save();return;
  }
  if(words.length<route.minTextElements){
-  host.append(el('p','Je kunt hier iets toevoegen of gewoon verdergaan.'));canvas(host);collector(host,true,route.collectionInvitation);save();return;
+  host.append(el('p','Je kunt hier iets toevoegen of gewoon verdergaan.'));canvas(host);collector(host,true,route.collectionInvitation,true);save();return;
  }
  if(route.variants&&!route.variants[research.variant])research.variant=choose(Object.keys(route.variants));
  const variant=route.variants?.[research.variant];
- if(route.interactionType==='standing'&&words.length<2){research.phase=0;research.reverse=false;}
+ if(route.interactionType==='standing'&&words.length<2&&research.phase===1){research.phase=0;research.reverse=false;}
  if(variant)research.phase=bound(research.phase,0,variant.phases.length-1);
  researchSelect(host,variant?.xSelection??route.xSelection,'xId');
  if(research.xId){
   if(route.interactionType==='standing'){
    if(research.phase===0){route.fields.forEach(definition=>researchField(host,definition));}
+   else if(research.phase===2){researchField(host,route.changeField);}
    else{
     researchSelect(host,route.ySelection,'yId');
     if(research.yId){researchField(host,research.reverse?route.reverseField:route.lookField);if(!research.reverse)host.append(button(route.reverseChoice,()=>{research.reverse=true;save();render();}));}
    }
+   if(research.phase!==2)host.append(button(route.changeChoice,()=>{research.phase=2;save();render();}));
    if(research.phase===0&&words.length>=2)host.append(button(route.lookChoice,()=>{research.phase=1;save();render();}));
   }else if(route.interactionType==='dialogue'){
    if(research.phase===0){researchField(host,route.hereField);host.append(button(route.lookChoice,()=>{research.phase=1;save();render();}));}
@@ -158,21 +207,46 @@ function researchView(host){
  }
  // Every experience screen reuses the existing interactive canvas, never a readonly copy.
  canvas(host);
- if(research.xId&&(route.interactionType!=='dialogue'||(research.yId&&research.phase===2)))collector(host,true,route.collectionInvitation);
+ if(research.xId&&(route.interactionType!=='dialogue'||(research.yId&&research.phase===2)))collector(host,true,route.collectionInvitation,true);
  if(research.xId&&variant?.phases[research.phase].nextLabel)host.append(button(variant.phases[research.phase].nextLabel,()=>{research.phase+=1;state.activeId=research.xId;save();render();}));
  save();
 }
-function render(){app.replaceChildren();const base=steps[state.step];if(!base)return;const s=base.route?{...base,...content.routes.find(route=>route.id===state.routeId)}:base;if(s.canvas&&!s.readonly&&!state.firstSpaceStep){state.firstSpaceStep=s.id;save();}const progress=el('progress',null,{max:String(steps.length),value:String(state.step+1),'aria-label':'Voortgang'});app.append(progress,el('p',`Associatieruimte · ${state.step+1} van ${steps.length}`,{class:'eyebrow'}));const heading=el('h1',s.title,{tabindex:'-1'});app.append(heading);if(s.intro){const intro=s.canvas&&!s.readonly&&state.firstSpaceStep===s.id?steps.find(step=>step.id==='space').intro:s.intro;app.append(el('p',intro,{class:'intro'}));}
+function render(){app.replaceChildren();const base=steps[state.step];if(!base)return;const s=base.route?{...base,...content.routes.find(route=>route.id===state.routeId)}:base;if(s.canvas&&!s.readonly&&!state.firstSpaceStep){state.firstSpaceStep=s.id;save();}const progress=el('progress',null,{max:String(steps.length),value:String(state.step+1),'aria-label':'Voortgang'});app.append(progress,el('p',`Associatieruimte · ${state.step+1} van ${steps.length}`,{class:'eyebrow'}));const heading=el('h1',s.title,{tabindex:'-1'});app.append(heading);if(s.intro&&s.id!=='finish'){const intro=s.canvas&&!s.readonly&&state.firstSpaceStep===s.id?steps.find(step=>step.id==='space').intro:s.intro;app.append(el('p',intro,{class:'intro'}));}
 if(s.id==='research')researchView(app);
 if(s.id==='entry'){const choices=el('div',null,{class:'choices','aria-label':'Kies een ingang'});s.entries.forEach(t=>choices.append(button(t,()=>{state.entryType=t;save();render();},{'aria-pressed':String(state.entryType===t)})));app.append(choices);}
 if(s.id==='images'){const gallery=el('div',null,{class:'gallery'});for(const [index,id] of state.imageIds.entries()){const image=content.imagePool.find(image=>image.id===id),number=index+1;const b=button('',()=>{state.selectedImage=id;save();render();},{'aria-pressed':String(state.selectedImage===id),'aria-label':'Kies beeld '+number});b.append(el('img',null,{src:image.src,alt:'Beeld '+number,width:'1024',height:'1024'}),el('span','Beeld '+number));gallery.append(b);}app.append(gallery);}
-if(s.id==='arrange'&&state.selectedElement!==null){app.append(el('p',s.changeInvitation),answerReference('memoryDetail'),el('p',s.changeHint,{class:'intro'}));}
-if(s.canvas){if(s.readonly){app.append(el('p',content.readonlyCanvas.title,{class:'eyebrow'}),el('p',content.readonlyCanvas.text));}if(!s.readonly&&!state.firstSpaceStep){state.firstSpaceStep=s.id;save();}canvas(app,s.readonly);}
+if(s.id==='arrange'){const changeKey=state.research?.routeId==='standing'&&researchWords().some(a=>a.id===state.research.xId)&&state.research.phase===2?researchAnswerKey(content.researchRoutes.find(route=>route.id==='standing').changeField):state.research?.changeReferenceKey;if(changeKey)app.append(el('p',s.changeInvitation),answerReference(changeKey),el('p',s.changeHint,{class:'intro'}));}
+if(s.canvas&&s.id!=='finish'){if(s.readonly){app.append(el('p',content.readonlyCanvas.title,{class:'eyebrow'}),el('p',content.readonlyCanvas.text));}if(!s.readonly&&!state.firstSpaceStep){state.firstSpaceStep=s.id;save();}canvas(app,s.readonly);}
+if(s.viewCanvas)canvas(app,true);
 if(s.id==='return'){app.append(el('p','Je kwam binnen met:'),el('blockquote',state.originalQuestion));}
-if(s.id==='explore'){const label=el('label',null,{class:'field'});label.append(el('span','Welk element wil je onderzoeken?'));const select=el('select',null,{'aria-label':'Element om te onderzoeken'});select.append(el('option','Geen element geselecteerd',{value:''}));state.associations.filter(a=>!a.shape).forEach(a=>{const o=el('option',a.text,{value:a.id});if(a.text===state.selectedElement)o.selected=true;select.append(o);});select.addEventListener('change',()=>{state.selectedElement=state.associations.find(a=>a.id===select.value)?.text??null;state.answers.memory='';state.answers.memoryDetail='';save();render();});label.append(select);app.append(label);}
-if(s.fields && (s.id!=='explore'||state.selectedElement!==null) && (s.id!=='images'||state.selectedImage!==null))s.fields.forEach(f=>app.append(field(f)));
-if(s.collect || (s.canvas&&!s.readonly))collector(app,Boolean(s.canvas));
-if(s.id==='finish'){app.append(el('h2','Wat je zelf meenam'),el('div',state.answers.reflection||'',{class:'literal'}));if(state.answers.newQuestion)app.append(el('h2','Een vraag die ontstond'),el('div',state.answers.newQuestion,{class:'literal'}));for(const item of s.contact??[]){const section=el('section',null,{class:'contact'});section.append(el('h2',item.title),el('p',item.text,{class:'intro'}));const destination=content.contactLinks?.[item.urlKey]??'';if(/^(https?:\/\/|mailto:)/i.test(destination)){section.append(el('a',item.label,{href:destination,class:'contact-link'}));}else{section.append(el('button',item.label,{type:'button',disabled:'','aria-disabled':'true',title:'Deze link is nog niet ingesteld.'}));}app.append(section);}app.append(button('Opnieuw beginnen',reset,{class:'primary'}));}else{const nav=el('nav',null,{class:'navigation','aria-label':'Stappen'});if(state.step>0)nav.append(button('Terug',()=>go(-1)));else nav.append(el('span',''));nav.append(button('Verder',()=>{if(s.id==='entry'&&(!state.entryType||!state.originalQuestion.trim())){let msg=app.querySelector('.validation');if(!msg){msg=el('p','Kies een ingang en vul in waar het over gaat. Een kort antwoord is genoeg.',{role:'status',class:'validation'});nav.before(msg);}return;}go(1);},{class:'primary'}));app.append(nav);}
+if(s.fields && (s.id!=='images'||state.selectedImage!==null))s.fields.forEach(f=>app.append(field(f)));
+if(s.collect || (s.canvas&&!s.readonly))collector(app,Boolean(s.canvas),null,true);
+if(s.id==='finish'){app.append(el('h2','Hier begon je mee'),el('div',state.originalQuestion,{class:'literal'}),el('h2','Je Associatieruimte'),el('p','Terugblik · niet bewerkbaar',{class:'message'}));canvas(app,true);app.append(el('h2','Wat je zelf meenam'),el('div',state.answers.reflection||'',{class:'literal'}));if(state.answers.newQuestion?.trim())app.append(el('h2','Een vraag die ontstond'),el('div',state.answers.newQuestion,{class:'literal'}));if(s.intro)app.append(el('p',s.intro,{class:'intro'}));for(const item of s.contact??[]){const section=el('section',null,{class:'contact'});section.append(el('h2',item.title),el('p',item.text,{class:'intro'}));const destination=content.contactLinks?.[item.urlKey]??'';if(/^(https?:\/\/|mailto:)/i.test(destination)){section.append(el('a',item.label,{href:destination,class:'contact-link'}));}else{section.append(el('button',item.label,{type:'button',disabled:'','aria-disabled':'true',title:'Deze link is nog niet ingesteld.'}));}app.append(section);}app.append(button('Opnieuw beginnen',reset,{class:'primary'}));}else{const nav=el('nav',null,{class:'navigation','aria-label':'Stappen'});if(state.step>0)nav.append(button('Terug',()=>go(-1)));else nav.append(el('span',''));nav.append(button('Verder',()=>{if(s.id==='entry'&&(!state.entryType||!state.originalQuestion.trim())){let msg=app.querySelector('.validation');if(!msg){msg=el('p','Kies een ingang en vul in waar het over gaat. Een kort antwoord is genoeg.',{role:'status',class:'validation'});nav.before(msg);}return;}go(1);},{class:'primary'}));app.append(nav);}
 }
 function go(delta){state.step=availableStep(bound(state.step+delta,0,steps.length-1),delta);save();render();app.querySelector('h1').focus();window.scrollTo({top:0,behavior:'smooth'});}
-fetch('questions.json').then(r=>{if(!r.ok)throw Error();return r.json();}).then(data=>{content=data;steps=data.steps;if(state.stepId==='experiment')state.stepId='research';if(state.stepId){const resumed=steps.findIndex(step=>step.id===state.stepId);if(resumed>=0)state.step=resumed;}else if(state.step>=4){state.step+=1;}initialiseChoices();state.step=availableStep(bound(state.step,0,steps.length-1),1);render();}).catch(()=>{app.replaceChildren(el('h1','De vragen konden niet worden geladen'),el('p','Open de app via een lokale webserver: python3 -m http.server 8000. Open daarna http://localhost:8000.'));});
+function migrateFlow(){
+ // Preserve legacy answers, also when their element has since been removed.
+ const oldElement=state.associations.find(a=>!a.shape&&a.text===state.selectedElement);
+ if(oldElement&&state.flowVersion<2){
+  for(const [oldKey,newKey] of [['memory','here'],['memoryDetail','change']]){
+   const key='research.standing.'+oldElement.id+'...'+newKey;
+   if(typeof state.answers[oldKey]==='string'&&state.answers[key]===undefined)state.answers[key]=state.answers[oldKey];
+  }
+ }
+ if(oldElement&&state.flowVersion<2&&typeof state.answers.memoryDetail==='string'&&state.stepId!=='explore'){
+  state.research??={routeId:null,xId:null,yId:null,phase:0,variant:null,reply:false,reverse:false};
+  state.research.changeReferenceKey='research.standing.'+oldElement.id+'...change';
+ }
+ if(state.stepId==='experiment')state.stepId='research';
+ if(!state.stepId&&state.flowVersion<2){
+  // Sessions predating research used indices without its inserted step.
+  const oldIndex=state.step>=4?state.step+1:state.step;
+  state.stepId=['entry','imagine','images','space','research','explore','arrange','return','new','finish'][oldIndex];
+ }
+ if(state.stepId==='explore'){
+  state.stepId='research';
+  state.research={routeId:'standing',xId:oldElement?.id??null,yId:null,phase:oldElement?2:0,variant:null,reply:false,reverse:false};
+ }
+ state.flowVersion=2;
+}
+fetch('questions.json').then(r=>{if(!r.ok)throw Error();return r.json();}).then(data=>{content=data;steps=data.steps;migrateFlow();if(state.stepId){const resumed=steps.findIndex(step=>step.id===state.stepId);if(resumed>=0)state.step=resumed;}initialiseChoices();state.step=availableStep(bound(state.step,0,steps.length-1),1);render();}).catch(()=>{app.replaceChildren(el('h1','De vragen konden niet worden geladen'),el('p','Open de app via een lokale webserver: python3 -m http.server 8000. Open daarna http://localhost:8000.'));});

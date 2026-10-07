@@ -4,7 +4,7 @@
       "id": "entry",
       "category": "binnenkomen",
       "title": "Waar wil je even bij stilstaan?",
-      "intro": "Hier is ruimte om iets op een andere manier te bekijken. Via beelden, woorden en je eigen associaties. Je hoeft geen antwoord te vinden. ‘Weet ik niet’, ‘niets’ en ‘nee’ zijn ook mogelijk. Dit is een reflectie-oefening, geen test, diagnose of advies.",
+      "intro": "Misschien is er iets waar je mee zit, waar je nieuwsgierig naar bent of waar je met nadenken alleen niet verder mee komt.\n\nHier kun je het op een andere manier bekijken: via beelden, woorden en je eigen associaties. Je hoeft geen antwoord te vinden. ‘Weet ik niet’, ‘niets’ en ‘nee’ zijn ook mogelijk.\n\nDit is een reflectie-oefening, geen test, diagnose of advies.",
       "entries": [
         "Ik zit ergens mee",
         "Ik ben ergens nieuwsgierig naar",
@@ -32,12 +32,14 @@
       "fields": [
         {
           "key": "imageAssociation",
-          "text": "Als ik naar dit beeld kijk, denk ik aan…"
+          "text": "Als ik naar dit beeld kijk, denk ik aan…",
+          "collectible": true
         },
         {
           "key": "imageTogether",
           "text": "Wat komt er bij je op als je dit beeld naast je eerdere associatie legt?",
-          "referenceRouteField": 0
+          "referenceRouteField": 0,
+          "collectible": true
         }
       ],
       "collect": true
@@ -55,24 +57,6 @@
       "category": "onderzoeken",
       "title": "Wil je eens iets uitproberen?",
       "intro": "Kies iets dat je wilt onderzoeken. Je kunt verdergaan wanneer het voor jou genoeg is.",
-      "minElements": 1
-    },
-    {
-      "id": "explore",
-      "category": "herinneren",
-      "title": "Sta bij één element stil",
-      "intro": "Kies zelf een element uit je ruimte om verder te onderzoeken. Je mag ook doorgaan zonder iets te kiezen.",
-      "fields": [
-        {
-          "key": "memory",
-          "text": "Ga in gedachten eens bij ‘{selectedElement}’ staan. Wat ervaar je hier?"
-        },
-        {
-          "key": "memoryDetail",
-          "text": "Als ‘{selectedElement}’ zou kunnen veranderen, wat zou er dan gebeuren?"
-        }
-      ],
-      "collect": true,
       "minElements": 1
     },
     {
@@ -147,16 +131,19 @@
       "fields": [
         {
           "key": "landscape",
-          "text": "Als datgene wat je hebt ingebracht een plek, landschap of omgeving zou zijn, wat verschijnt er dan als eerste?"
+          "text": "Als datgene wat je hebt ingebracht een plek, landschap of omgeving zou zijn, wat verschijnt er dan als eerste?",
+          "collectible": true
         },
         {
           "key": "notice",
           "text": "Kijk nog eens naar die plek. Wat valt je als eerste op?",
-          "referenceKey": "landscape"
+          "referenceKey": "landscape",
+          "collectible": true
         },
         {
           "key": "other",
-          "text": "Is er nog iets anders dat je aandacht trekt? (Optioneel)"
+          "text": "Is er nog iets anders dat je aandacht trekt? (Optioneel)",
+          "collectible": true
         }
       ]
     },
@@ -166,17 +153,20 @@
       "fields": [
         {
           "key": "animal",
-          "text": "Als wat je bezighoudt een dier zou zijn, welk dier komt er dan als eerste bij je op?"
+          "text": "Als wat je bezighoudt een dier zou zijn, welk dier komt er dan als eerste bij je op?",
+          "collectible": true
         },
         {
           "key": "animalAction",
           "text": "Wat doet dat dier?",
-          "referenceKey": "animal"
+          "referenceKey": "animal",
+          "collectible": true
         },
         {
           "key": "animalNotice",
           "text": "Wat valt je daaraan op?",
-          "referenceKey": "animalAction"
+          "referenceKey": "animalAction",
+          "collectible": true
         }
       ]
     },
@@ -186,17 +176,20 @@
       "fields": [
         {
           "key": "movement",
-          "text": "Als wat je bezighoudt een beweging zou zijn, hoe zou die bewegen?"
+          "text": "Als wat je bezighoudt een beweging zou zijn, hoe zou die bewegen?",
+          "collectible": true
         },
         {
           "key": "movementNotice",
           "text": "Wat valt je op aan die beweging?",
-          "referenceKey": "movement"
+          "referenceKey": "movement",
+          "collectible": true
         },
         {
           "key": "movementChange",
           "text": "Verandert de beweging ergens, of blijft die hetzelfde? (Optioneel)",
-          "referenceKey": "movement"
+          "referenceKey": "movement",
+          "collectible": true
         }
       ]
     }
@@ -331,7 +324,12 @@
         "key": "reverse",
         "text": "Ga nu eens gevoelsmatig bij ‘{Y}’ staan en kijk terug naar ‘{X}’. Hoe is het vanaf deze kant?"
       },
-      "collectionInvitation": "Komt er, terwijl je hier staat, nog iets op dat je aan je Associatieruimte wilt toevoegen?"
+      "collectionInvitation": "Komt er, terwijl je hier staat, nog iets op dat je aan je Associatieruimte wilt toevoegen?",
+      "changeChoice": "Een mogelijke verandering verbeelden",
+      "changeField": {
+        "key": "change",
+        "text": "Als ‘{X}’ zou kunnen veranderen, wat zou er dan gebeuren?"
+      }
     },
     {
       "id": "dialogue",
@@ -458,5 +456,9 @@
         }
       }
     }
+  ],
+  "legacyAnswerKeys": [
+    "memory",
+    "memoryDetail"
   ]
 }
