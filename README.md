@@ -83,3 +83,14 @@ De opties staan bij alle bestaande verzamelmomenten, ook in de ervaringsgerichte
 Als de letterlijke tekst al als tekstelement bestaat, is die optie uitgeschakeld en herkenbaar als ‘Toegevoegd’. De klikhandler controleert dit opnieuw om dubbele klikken op te vangen. Oude sessies vereisen geen nieuwe metadata of migratie: de huidige elementen bepalen de toegevoegde status. Renderen of hervatten voegt nooit materiaal toe. Lange antwoorden blijven volledig leesbaar; de lijst heeft een beperkte hoogte en kan scrollen, met ombrekende chips op desktop en mobiel.
 
 Tests: `node tests/answers.cjs` controleert de expliciete bronvelden, eigen/letterlijke teksten, meerdere klikken, vrije invoer, gelijkwaardige elementen, beschikbaarheid van oefeningen, kleur/positie/grootte, geen automatische toevoeging, herladen, bestaande sessies en lange teksten op beide afmetingen. `tests/flow.cjs` en `tests/research.cjs` blijven slagen. Dit zijn DOM-tests; echte browserweergave is hier nog niet getest door het ontbrekende Chromium-programma.
+
+
+## Veranderingsvraag binnen standing
+
+De aparte stap `explore` is vervallen. Binnen `researchRoutes.standing` opent `changeChoice` de optionele verdieping met `changeField`: “Als ‘{X}’ zou kunnen veranderen, wat zou er dan gebeuren?”. De bestaande standing-vragen en optionele relationele verdieping blijven behouden; dialogue en size krijgen deze vraag niet. Na research volgt arrange.
+
+De vraag gebruikt `state.research.xId`, fase 2 en een bestaande scoped antwoordkey (`research.standing.<id>...change`). Het interactieve canvas blijft zichtbaar; arrange toont de veranderingsuitnodiging en dit antwoord als geheugensteun. Het antwoord verschijnt ook in de aanklikbare eigen inhoud.
+
+`migrateFlow()` hervat oude `stepId: explore`-sessies binnen standing bij de veranderingsvraag wanneer het gekozen element nog bestaat. Oud memory/memoryDetail-materiaal blijft bewaard en aanklikbaar via `legacyAnswerKeys`, ook zonder het oude element. Bij een bestaand element worden oude antwoorden eenmalig naar de standing-keys gekopieerd zonder bestaande scoped antwoorden te overschrijven. Bestaande arrange-sessies bewaren hun referentie in research.changeReferenceKey. flowVersion 2 en stepId houden nieuwe en oude stapindices uit elkaar. Er worden geen oefeningen of elementen automatisch uitgevoerd/toegevoegd.
+
+De tests controleren standing met één en meerdere elementen, letterlijke antwoorden en herladen, interactief wijzigen en de geheugensteun in arrange, direct verdergaan vanuit dialogue/size, oude explore-sessies met en zonder element, oud arrange, legacy-antwoordchips en de volledige overige flow op desktop/mobile in de DOM-omgeving.
