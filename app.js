@@ -42,22 +42,49 @@ function updateAnswerReference(node){
 }
 function answerReference(key){const node=el('p',null,{class:'message answer-reference'});node.style.whiteSpace='pre-wrap';node.style.overflowWrap='anywhere';node.dataset.answerKey=key;updateAnswerReference(node);return node;}
 function refreshAnswerReferences(){for(const node of app.querySelectorAll('.answer-reference'))updateAnswerReference(node);}
-function field(f){const text=f.literal?f.text:f.text.replaceAll('{selectedElement}',()=>state.selectedElement ?? '');const label=el('label',null,{class:'field'});label.append(el('span',text));const referenceKey=f.referenceKey??content.routes.find(route=>route.id===state.routeId)?.fields[f.referenceRouteField]?.key;if(referenceKey)label.append(answerReference(referenceKey));const input=el('textarea',null,{'aria-label':text});input.value=f.key==='originalQuestion'?state.originalQuestion:(state.answers[f.key]??'');input.addEventListener('input',()=>{if(f.key==='originalQuestion')state.originalQuestion=input.value;else state.answers[f.key]=input.value;save();refreshAnswerReferences();});label.append(input);return label;}
-function collector(host,inSpace=false,invitation=null){
- const box=el('section',null,{class:'collector'});
- box.append(el('p',invitation??(inSpace?'Wil je hier nog iets aan toevoegen?':'Wil je iets hiervan meenemen naar je Associatieruimte?')));
- const form=el('form',null),input=el('input',null,{'aria-label':'Nieuw woord of korte zin',placeholder:'Een woord of korte zin'});
+function field(f){const text=f.literal?f.text:f.text.replaceAll('{selectedElement}',()=>state.selectedElement ?? '');const label=el('label',null,{class:'field'});label.append(el('span',text));const referenceKey=f.referenceKey??content.routes.find(route=>route.id===state.routeId)?.fields[f.referenceRouteField]?.key;if(referenceKey)label.append(answerReference(referenceKey));const input=el('textarea',null,{'aria-label':text});input.value=f.key==='originalQuestion'?state.originalQuestion:(state.answers[f.key]??'');input.addEventListener('input',()=>{if(f.key==='originalQuestion')state.originalQuestion=input.value;else state.answers[f.key]=input.value;save();refreshAnswerReferences();refreshTakeaways();});label.append(input);return label;}
+function addElement(text,color){
+ if(!text.trim())return false;
+ const n=state.associations.length,association={id:crypto.randomUUID(),text,x:20+(n%4)*20,y:20+(Math.floor(n/4)%4)*20,size:1};
+ if(color)association.color=color;
+ state.associations.push(association);save();return true;
+}
+function elementForm(taking=false){
+ const form=el('form',null,{'aria-label':taking?'Iets meenemen':'Zelf iets toevoegen'});
+ const input=el('input',null,{'aria-label':taking?'Wat wil je meenemen?':'Nieuw woord of korte zin',placeholder:'Een woord of korte zin'});
+ if(taking){const label=el('label',null,{class:'take-input-label'});input.id='take-'+crypto.randomUUID();label.setAttribute('for',input.id);label.textContent='Wat wil je meenemen?';form.append(label);}
  const row=el('div',null,{class:'collect-word'});row.append(input,el('button','Toevoegen',{type:'submit'}));
  const colors=el('div',null,{class:'collect-color'});colors.append(el('p','Heeft dit woord of deze zin voor jou een kleur?'));
  const label=el('label',null,{class:'color-control'});label.append(el('span','Kleur (optioneel)'));
- const color=el('input',null,{type:'color','aria-label':'Kleur voor nieuw woord of korte zin'});color.value='#fffdf1';label.append(color);
+ const color=el('input',null,{type:'color','aria-label':taking?'Kleur voor wat je meeneemt':'Kleur voor nieuw woord of korte zin'});color.value='#fffdf1';label.append(color);
  let chosenColor=null;
  const status=el('span','Geen specifieke kleur',{class:'message','aria-live':'polite'});
  color.addEventListener('input',()=>{chosenColor=color.value;status.textContent='Eigen kleur gekozen';});
  colors.append(label,button('Geen specifieke kleur',()=>{chosenColor=null;color.value='#fffdf1';status.textContent='Geen specifieke kleur';}),status);
  form.append(row,colors);
- form.addEventListener('submit',e=>{e.preventDefault();if(!input.value.trim())return;const n=state.associations.length;const association={id:crypto.randomUUID(),text:input.value,x:20+(n%4)*20,y:20+(Math.floor(n/4)%4)*20,size:1};if(chosenColor)association.color=chosenColor;state.associations.push(association);save();render();});
- box.append(form);
+ form.addEventListener('submit',e=>{e.preventDefault();if(addElement(input.value,chosenColor))render();});
+ return form;
+}
+function refreshTakeaway(panel){
+ // Only fixed field order and empty/nonempty checks; no words are extracted or ranked.
+ const keys=JSON.parse(panel.dataset.sourceKeys),key=keys.find(key=>typeof state.answers[key]==='string'&&state.answers[key].trim());
+ panel.hidden=!key||panel.dataset.dismissed==='true';
+ const reference=panel.querySelector('.answer-reference');reference.dataset.answerKey=key??'';updateAnswerReference(reference);
+}
+function refreshTakeaways(){for(const panel of app.querySelectorAll('.takeaway'))refreshTakeaway(panel);}
+function takeaway(keys){
+ const panel=el('section',null,{class:'takeaway'});panel.dataset.sourceKeys=JSON.stringify(keys);
+ panel.append(el('p','Wil je hier iets van meenemen naar je Associatieruimte?'),answerReference(''));
+ const choices=el('div',null,{class:'choices'});
+ const take=button('Iets meenemen',()=>{if(panel.querySelector('form'))return;const form=elementForm(true);panel.append(form);take.hidden=true;form.querySelector('input').focus();});
+ choices.append(take,button('Niet nu',()=>{panel.dataset.dismissed='true';panel.hidden=true;}));panel.append(choices);refreshTakeaway(panel);return panel;
+}
+function collector(host,inSpace=false,invitation=null,sourceKeys=[]){
+ const box=el('section',null,{class:'collector'});
+ if(!state.associations.some(a=>!a.shape))box.append(el('p','Je kunt hier woorden of korte zinnen verzamelen die voor jou tijdens het onderzoeken betekenis krijgen. Neem iets mee uit wat ontstaat, of voeg zelf iets toe dat voor jou erbij hoort.',{class:'message'}));
+ if(sourceKeys.length){box.append(takeaway(sourceKeys),el('p','Je kunt ook zelf iets nieuws toevoegen.'));}
+ else box.append(el('p',invitation??(inSpace?'Wil je hier nog iets aan toevoegen?':'Wil je iets hiervan meenemen naar je Associatieruimte?')));
+ box.append(elementForm());
  const cloud=el('div',null,{class:'word-cloud','aria-label':'Wat onderweg is ontstaan'});
  for(const a of state.associations.filter(a=>!a.shape)){const word=el('span',a.text,{class:'cloud-word'});word.style.backgroundColor=a.color||'#fffdf1';cloud.append(word);}
  box.append(cloud);host.append(box);
@@ -171,7 +198,7 @@ if(s.canvas){if(s.readonly){app.append(el('p',content.readonlyCanvas.title,{clas
 if(s.id==='return'){app.append(el('p','Je kwam binnen met:'),el('blockquote',state.originalQuestion));}
 if(s.id==='explore'){const label=el('label',null,{class:'field'});label.append(el('span','Welk element wil je onderzoeken?'));const select=el('select',null,{'aria-label':'Element om te onderzoeken'});select.append(el('option','Geen element geselecteerd',{value:''}));state.associations.filter(a=>!a.shape).forEach(a=>{const o=el('option',a.text,{value:a.id});if(a.text===state.selectedElement)o.selected=true;select.append(o);});select.addEventListener('change',()=>{state.selectedElement=state.associations.find(a=>a.id===select.value)?.text??null;state.answers.memory='';state.answers.memoryDetail='';save();render();});label.append(select);app.append(label);}
 if(s.fields && (s.id!=='explore'||state.selectedElement!==null) && (s.id!=='images'||state.selectedImage!==null))s.fields.forEach(f=>app.append(field(f)));
-if(s.collect || (s.canvas&&!s.readonly))collector(app,Boolean(s.canvas));
+if(s.collect || (s.canvas&&!s.readonly))collector(app,Boolean(s.canvas),null,(s.route||s.id==='images')?(s.fields??[]).map(field=>field.key).reverse():[]);
 if(s.id==='finish'){app.append(el('h2','Wat je zelf meenam'),el('div',state.answers.reflection||'',{class:'literal'}));if(state.answers.newQuestion)app.append(el('h2','Een vraag die ontstond'),el('div',state.answers.newQuestion,{class:'literal'}));for(const item of s.contact??[]){const section=el('section',null,{class:'contact'});section.append(el('h2',item.title),el('p',item.text,{class:'intro'}));const destination=content.contactLinks?.[item.urlKey]??'';if(/^(https?:\/\/|mailto:)/i.test(destination)){section.append(el('a',item.label,{href:destination,class:'contact-link'}));}else{section.append(el('button',item.label,{type:'button',disabled:'','aria-disabled':'true',title:'Deze link is nog niet ingesteld.'}));}app.append(section);}app.append(button('Opnieuw beginnen',reset,{class:'primary'}));}else{const nav=el('nav',null,{class:'navigation','aria-label':'Stappen'});if(state.step>0)nav.append(button('Terug',()=>go(-1)));else nav.append(el('span',''));nav.append(button('Verder',()=>{if(s.id==='entry'&&(!state.entryType||!state.originalQuestion.trim())){let msg=app.querySelector('.validation');if(!msg){msg=el('p','Kies een ingang en vul in waar het over gaat. Een kort antwoord is genoeg.',{role:'status',class:'validation'});nav.before(msg);}return;}go(1);},{class:'primary'}));app.append(nav);}
 }
 function go(delta){state.step=availableStep(bound(state.step+delta,0,steps.length-1),delta);save();render();app.querySelector('h1').focus();window.scrollTo({top:0,behavior:'smooth'});}
