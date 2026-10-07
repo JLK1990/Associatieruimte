@@ -18,7 +18,7 @@ Open http://localhost:8000. Er zijn geen dependencies of buildstappen. Dubbelkli
 - styles.css: warme, responsive vormgeving
 - app.js: negen stappen, lokale sessie en canvasbediening
 - questions.json: geordende stappen, categorieën en vraagteksten
-- images/candidates/: tien losse WebP-beelden en een preview; de oude SVG’s blijven bewaard
+- images/candidates/: twintig losse WebP-beelden en een preview; de oude SVG’s blijven bewaard
 
 Vragen kunnen binnen `fields` herschreven en geordend worden. Stappen zijn herkenbaar aan hun `id`; behoud deze id's en de veldsleutels bij tekstwijzigingen. Nieuwe vraagbewegingen vragen later mogelijk ook aanpassing van de flow. `{selectedElement}` wordt letterlijk vervangen door het gekozen woord, zonder analyse.
 
@@ -52,7 +52,7 @@ Stel in questions.json `contactLinks.experience` en `contactLinks.introduction` 
 
 ## Associatieve routes en beeldkeuze
 
-`questions.json` bevat drie vooraf geschreven `routes` (landscape, animal, movement) en een `imagePool` van tien lokale kandidaatbeelden. In de bestaande sessie onder `associatieruimte.v01` worden `routeId` en drie `imageIds` opgeslagen. Renderen, navigeren en herladen kiezen niets opnieuw. Oudere sessies zonder route gebruiken de oorspronkelijke landschapsroute; antwoorden en vormen blijven behouden.
+`questions.json` bevat drie vooraf geschreven `routes` (landscape, animal, movement) en een `imagePool` van twintig lokale kandidaatbeelden. In de bestaande sessie onder `associatieruimte.v01` worden `routeId` en drie `imageIds` opgeslagen. Renderen, navigeren en herladen kiezen niets opnieuw. Oudere sessies zonder route gebruiken de oorspronkelijke landschapsroute; antwoorden en vormen blijven behouden.
 
 Bij een nieuwe sessie kiest de app een andere route dan de vorige. Voor beelden kiest de app willekeurig drie verschillende ID’s zonder terugleggen. De direct vorige drie worden uitgesloten zolang er minstens drie andere beelden zijn; bij een kleinere pool worden eerdere beelden pas gebruikt wanneer nodig. De `variation`-metadata bepaalt de selectie niet meer. Alleen de vorige route en beeld-ID’s worden daarnaast bewaard onder `associatieruimte.v01.choices`, zonder antwoorden of elementen.
 

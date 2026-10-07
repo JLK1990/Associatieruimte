@@ -13,5 +13,32 @@
     "Several mismatched everyday objects crowded on a shelf: a striped cup, folded glove, tin box and a pebble, close oblique framing.",
     "Loose sheets of coral and cream laundry twisting in gusts above an enclosed courtyard, cropped architecture and moving folds.",
     "A visibly mended chipped ceramic jug on a clutter-free cobalt kitchen tabletop, visible simple repair seam, irregular painted proportions."
-  ]
+  ],
+  "additionalSet": {
+    "ids": [
+      "image-11",
+      "image-12",
+      "image-13",
+      "image-14",
+      "image-15",
+      "image-16",
+      "image-17",
+      "image-18",
+      "image-19",
+      "image-20"
+    ],
+    "style": "Use case: stylized-concept. A single standalone square 1024x1024 image for an adult associative exercise. Expressive handmade acrylic/gouache painting with thick visible irregular palette-knife strokes, dry-brush texture, impasto, colorful broken brush marks, tactile imperfect edges, rich ochre/coral/cobalt/turquoise/cream accents. Match the painterly visual family of textured colorful everyday-scene paintings, but this new work is more ambiguous and fragmentary. No digital smoothness, no photorealism, no text, lettering, labels, symbols, characters, scenic landscape, water, paths, stairs, doors, mountains, growing plants, messages or prescribed emotion. NOT a collage or multiple panels. One coherent full-bleed composition, playful but adult, open to many readings. Do not reproduce any existing image. ",
+    "scenes": [
+      "Large cropped irregular overlapping translucent-looking angular planes, cobalt and apricot across a pale field, a small oval gap left open between them; uncertain whether paper, material, or spatial fragments. Airy sparse composition.",
+      "An almost full field of uneven curved bands and notched rounded segments, densely interlocking but with one displaced coral piece; cropped edges, flat shallow depth, no clearly identifiable object.",
+      "A folded rippling ridge crossing a square dark plum ground, painted burnt orange and pale mint; close view with rough broken edges, uncertain scale and material, one pronounced change of direction.",
+      "An off-center cluster of irregular hollow loops, ochre and ultramarine, surrounded by wide cream negative space; loops partly overlap, neither chain nor identifiable object, asymmetric painterly shadows.",
+      "Broad diagonal blocks with an irregular interruption, deep green against pink, one slender yellow fragment traversing the interruption; oblique compressed spatial composition, no literal doorway.",
+      "A shallow layered field of scattered elongated slivers and rounded marks, rust and turquoise on chalky lavender; some repeated, one much larger than the others, suspended ambiguous arrangement, no objects or writing.",
+      "A close-up of intersecting irregular ridges with pitted gaps, almost tactile, teal and pale peach on warm grey; partial contour extending outside frame, uncertain whether organic or fabricated, no recognizable thing.",
+      "Two loosely joined billowing forms against a heavy cobalt field, one coral and one ochre, a narrow strip of lighter space between them; brushed fragments imply motion without water or fabric depiction.",
+      "A loose staggered pattern of uneven small quadrilateral patches, warm yellow and muted blue, fading into a larger ochre zone with one unfilled shape; no recognizable grid object or text.",
+      "An oversized curved incomplete arc intersecting a low jagged mass, near-black violet with turquoise and coral highlights on pale apricot; deep spatial ambiguity, one tiny detached mark far from the mass, no identifiable scene."
+    ]
+  }
 }
