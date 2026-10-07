@@ -68,7 +68,7 @@ function elementForm(){
 function collectibleAnswers(){
  // Known free-text fields and stored research scopes contain user material, not UI choices.
  const fields=[...content.routes.flatMap(route=>route.fields??[]),...steps.flatMap(step=>step.fields??[])];
- const answers=fields.map(field=>field.key==='originalQuestion'?state.originalQuestion:state.answers[field.key]);
+ const answers=fields.filter(field=>field.key!=='originalQuestion').map(field=>state.answers[field.key]);
  answers.push(...(content.legacyAnswerKeys??[]).map(key=>state.answers[key]));
  for(const [key,text] of Object.entries(state.answers)){
   const [prefix,routeId,xId,yId,variant,fieldKey,...extra]=key.split('.');
