@@ -70,6 +70,20 @@
       "changeHint": "Je kunt iets verplaatsen, groter of kleiner maken, kleur geven, iets toevoegen of weghalen."
     },
     {
+      "id": "object",
+      "title": "Nog één ding…",
+      "fields": [
+        {
+          "key": "objectAction",
+          "text": "Wat zou je ermee doen?"
+        },
+        {
+          "key": "objectView",
+          "text": "Voer je bedachte actie in gedachten uit. Wat zie je?"
+        }
+      ]
+    },
+    {
       "id": "return",
       "category": "terugkeren",
       "title": "Terug naar je beginvraag",
@@ -460,5 +474,17 @@
   "legacyAnswerKeys": [
     "memory",
     "memoryDetail"
+  ],
+  "objectPool": [
+    "touw",
+    "ladder",
+    "stoel",
+    "deken",
+    "bal",
+    "krijtje",
+    "doos",
+    "zaklamp",
+    "emmer",
+    "paraplu"
   ]
 }

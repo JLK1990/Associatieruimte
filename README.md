@@ -94,3 +94,14 @@ De vraag gebruikt `state.research.xId`, fase 2 en een bestaande scoped antwoordk
 `migrateFlow()` hervat oude `stepId: explore`-sessies binnen standing bij de veranderingsvraag wanneer het gekozen element nog bestaat. Oud memory/memoryDetail-materiaal blijft bewaard en aanklikbaar via `legacyAnswerKeys`, ook zonder het oude element. Bij een bestaand element worden oude antwoorden eenmalig naar de standing-keys gekopieerd zonder bestaande scoped antwoorden te overschrijven. Bestaande arrange-sessies bewaren hun referentie in research.changeReferenceKey. flowVersion 2 en stepId houden nieuwe en oude stapindices uit elkaar. Er worden geen oefeningen of elementen automatisch uitgevoerd/toegevoegd.
 
 De tests controleren standing met één en meerdere elementen, letterlijke antwoorden en herladen, interactief wijzigen en de geheugensteun in arrange, direct verdergaan vanuit dialogue/size, oude explore-sessies met en zonder element, oud arrange, legacy-antwoordchips en de volledige overige flow op desktop/mobile in de DOM-omgeving.
+
+
+## Eén onverwacht voorwerp
+
+Direct vóór return staat één nieuwe stap `object`, ook met een lege Associatieruimte. `questions.json.objectPool` bevat tien concrete voorwerpen en is uitbreidbaar. `initialiseChoices()` kiest met dezelfde willekeurige keuzehelper één voorwerp, zonder matching of metadata. Alleen de direct vorige keuze wordt bij reset vermeden. `state.objectId` en `state.objectPhase` staan in de bestaande sessie; de laatste keuze staat ook in de bestaande `.choices`-opslag. Renderen, navigeren en hervatten kiezen geen nieuw voorwerp.
+
+De eerste vraag schrijft naar `answers.objectAction`. Na een antwoord opent Verder de vaste tweede vraag, opgeslagen als `answers.objectView`. Beide schermen tonen het actuele interactieve canvas. Na de tweede vraag zijn alleen deze eigen antwoorden als lokale chips beschikbaar, met de bestaande optionele kleurkeuze en vrije invoer. Het voorwerp zelf blijft uitsluitend een tijdelijke appprikkel: geen automatisch element, geen antwoordchip en geen nieuwe vermelding in finish. Verdergaan zonder antwoord blijft mogelijk.
+
+`flowVersion: 3` en bestaande stepIds zorgen voor hervatten; oudere indexsessies van versie 2 worden naar hun oorspronkelijke stap-ID vertaald. Wie al op return/new/finish stond blijft daar, zonder teruggestuurd te worden. De bestaande migratie van oudere explore-sessies blijft behouden.
+
+Tests: `node tests/object.cjs` controleert de volledige nieuwe interventie, 0/1/2 elementen, letterlijke opslag/chips, optionele kleur, vrije invoer, duplicaten, return/finish, herladen en oudere sessies op desktop/mobiele DOM-afmetingen. In 10.000 resets verschenen alle voorwerpen 9,48–10,46% van de tijd, zonder directe herhaling. De bestaande flow-, research-, answers-, finish- en image-tests blijven slagen. De canvas- en researchimplementatie en return/finish-inhoud zijn ongewijzigd. Een echte handmatige browsertest is niet uitgevoerd.
