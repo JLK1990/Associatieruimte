@@ -61,6 +61,7 @@
     },
     {
       "id": "explore",
+      "viewCanvas": true,
       "category": "herinneren",
       "title": "Sta bij één element stil",
       "intro": "Kies zelf een element uit je ruimte om verder te onderzoeken. Je mag ook doorgaan zonder iets te kiezen.",
