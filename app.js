@@ -2,8 +2,8 @@
 const STORAGE_KEY = 'associatieruimte.v01';
 const app = document.querySelector('#app');
 const blank = () => ({step:0,entryType:'',originalQuestion:'',answers:{},associations:[],selectedImage:null,flowVersion:3,objectId:null,objectPhase:0,activeId:null,firstSpaceStep:null,routeId:null,imageIds:null,stepId:null,research:null});
-let state = blank(), steps = [], content = {};
-try { const saved = JSON.parse(localStorage.getItem(STORAGE_KEY)); if(saved && Array.isArray(saved.associations) && saved.answers && typeof saved.originalQuestion === 'string') state = {...state,...saved,flowVersion:saved.flowVersion??0}; } catch { /* A fresh session also works without storage. */ }
+let state = blank(), steps = [], content = {}, lastStored = null;
+try { lastStored = localStorage.getItem(STORAGE_KEY); const saved = JSON.parse(lastStored); if(saved && Array.isArray(saved.associations) && saved.answers && typeof saved.originalQuestion === 'string') state = {...state,...saved,flowVersion:saved.flowVersion??0}; } catch { /* A fresh session also works without storage. */ }
 // Only choices are retained between sessions, never answers or associations.
 const CHOICES_KEY = STORAGE_KEY+'.choices';
 function choose(items){return items[Math.floor(Math.random()*items.length)];}
@@ -32,10 +32,14 @@ function initialiseChoices(previous){
  try{localStorage.setItem(CHOICES_KEY,JSON.stringify({routeId:state.routeId,imageIds:state.imageIds,objectId:state.objectId}));}catch{}
  save();
 }
-function save(){state.stepId=steps[state.step]?.id??state.stepId;try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state));}catch{document.querySelector('#storage-notice').textContent='Bewaren lukt niet in deze browser. Je kunt doorgaan; houd dit tabblad open.';}}
+function storageIsCurrent(){
+ try{if(localStorage.getItem(STORAGE_KEY)!==lastStored){document.querySelector('#storage-notice').textContent='Deze sessie is gewijzigd in een ander tabblad. Herlaad dit tabblad om verder te gaan. Wijzigingen hier worden niet opgeslagen.';return false;}}catch{}
+ return true;
+}
+function save(){state.stepId=steps[state.step]?.id??state.stepId;if(!storageIsCurrent())return false;try{const serialized=JSON.stringify(state);localStorage.setItem(STORAGE_KEY,serialized);lastStored=serialized;return true;}catch{document.querySelector('#storage-notice').textContent='Bewaren lukt niet in deze browser. Je kunt doorgaan; houd dit tabblad open.';return false;}}
 function el(tag,text,attrs={}){const node=document.createElement(tag);if(text!==null)node.textContent=text;for(const [k,v] of Object.entries(attrs))node.setAttribute(k,v);return node;}
-function button(text,action,attrs={}){const b=el('button',text,{type:'button',...attrs});b.addEventListener('click',action);return b;}
-function reset(){try{localStorage.removeItem(STORAGE_KEY);}catch{}const previous={routeId:state.routeId,imageIds:state.imageIds,objectId:state.objectId};state=blank();initialiseChoices(previous);document.querySelector('#storage-notice').textContent='Je sessie is gewist.';render();}
+function button(text,action,attrs={}){const b=el('button',text,{type:'button',...attrs});b.addEventListener('click',e=>{if(storageIsCurrent())action(e);});return b;}
+function reset(){if(!storageIsCurrent())return;try{localStorage.removeItem(STORAGE_KEY);lastStored=null;}catch{}const previous={routeId:state.routeId,imageIds:state.imageIds,objectId:state.objectId};state=blank();initialiseChoices(previous);document.querySelector('#storage-notice').textContent='Je sessie is gewist.';render();}
 document.querySelector('#erase').addEventListener('click',reset);
 function updateAnswerReference(node){
  const key=node.dataset.answerKey,answer=key==='originalQuestion'?state.originalQuestion:state.answers[key];
@@ -45,9 +49,28 @@ function updateAnswerReference(node){
 function answerReference(key){const node=el('p',null,{class:'message answer-reference'});node.style.whiteSpace='pre-wrap';node.style.overflowWrap='anywhere';node.dataset.answerKey=key;updateAnswerReference(node);return node;}
 function refreshAnswerReferences(){for(const node of app.querySelectorAll('.answer-reference'))updateAnswerReference(node);}
 function field(f){const text=f.text;const label=el('label',null,{class:'field'});label.append(el('span',text));const referenceKey=f.referenceKey??content.routes.find(route=>route.id===state.routeId)?.fields[f.referenceRouteField]?.key;if(referenceKey)label.append(answerReference(referenceKey));const input=el('textarea',null,{'aria-label':text});input.value=f.key==='originalQuestion'?state.originalQuestion:(state.answers[f.key]??'');input.addEventListener('input',()=>{if(f.key==='originalQuestion')state.originalQuestion=input.value;else state.answers[f.key]=input.value;save();refreshAnswerReferences();refreshAnswerSuggestions();});label.append(input);return label;}
+function newElementPosition(text){
+ const existing=app.querySelector('.canvas'),space=existing??el('div',null,{class:'canvas'});
+ if(!existing){space.style.visibility='hidden';app.append(space);}
+ const rect=space.getBoundingClientRect(),nodes=[...space.querySelectorAll('.word')];
+ const measure=a=>{const probe=el('span',a.text??'',{class:'word'+(a.shape?' shape shape-'+a.shape:'')});probe.style.visibility='hidden';probe.style.fontSize=16*a.size+'px';if(a.shape){probe.style.width=90*a.size+'px';probe.style.height=(a.shape==='rectangle'?65:90)*a.size+'px';}space.append(probe);const dimensions={width:probe.offsetWidth,height:probe.offsetHeight};probe.remove();return dimensions;};
+ const {width,height}=measure({text,size:1});
+ const occupied=state.associations.filter(a=>!a.hidden).map(a=>{const node=nodes.find(n=>n.dataset.id===a.id);return {a,...(node?{width:node.offsetWidth,height:node.offsetHeight}:measure(a))};});
+ if(!existing)space.remove();
+ const halfX=Math.min(49,(width/2+4)/rect.width*100),halfY=Math.min(49,(height/2+4)/rect.height*100);
+ let best={x:50,y:50},score=-Infinity;
+ // Keep existing positions; only find room for the new element. In a full space use the least crowded candidate.
+ for(const cy of [20,40,60,80,10,30,50,70,90])for(const cx of [20,40,60,80,12,30,50,70,88]){
+  const x=bound(cx,Math.max(12,halfX),Math.min(88,100-halfX)),y=bound(cy,Math.max(10,halfY),Math.min(90,100-halfY));
+  const gap=occupied.length?Math.min(...occupied.map(o=>Math.max(Math.abs(x-o.a.x)*rect.width/100-(width+o.width)/2,Math.abs(y-o.a.y)*rect.height/100-(height+o.height)/2))):Infinity;
+  if(gap>score){best={x,y};score=gap;}if(gap>=12)return {x,y};
+ }
+ return best;
+}
 function addElement(text,color){
+ if(!storageIsCurrent())return false;
  if(!text.trim())return false;
- const n=state.associations.length,association={id:crypto.randomUUID(),text,x:20+(n%4)*20,y:20+(Math.floor(n/4)%4)*20,size:1};
+ const association={id:crypto.randomUUID(),text,...newElementPosition(text),size:1};
  if(color)association.color=color;
  state.associations.push(association);save();return true;
 }
@@ -159,8 +182,28 @@ function researchSelect(host,text,key){
  const select=el('select',null,{'aria-label':researchText(text)});select.append(el('option','Kies zelf een woord',{value:''}));
  for(const a of words){if(key==='yId'&&a.id===research.xId)continue;const option=el('option',a.text,{value:a.id});option.selected=research[key]===a.id;select.append(option);}
  select.value=research[key]??'';
- select.addEventListener('change',()=>{research[key]=select.value||null;if(key==='xId'){research.yId=null;research.phase=0;research.reply=false;research.reverse=false;}else{research.reply=false;research.reverse=false;if(research.routeId==='dialogue')research.phase=1;}state.activeId=select.value||null;save();render();});
+ select.addEventListener('change',()=>{research[key]=select.value||null;if(key==='xId'){research.yId=null;research.phase=0;research.reply=false;research.reverse=false;}else{research.reply=false;research.reverse=false;if(research.routeId==='dialogue')research.phase=1;}if(research.routeId==='dialogue')research.dialoguePhase=0;else state.activeId=select.value||null;save();render();});
  label.append(select);host.append(label);
+}
+function dialogueView(host,route){
+ const research=state.research;
+ if(research.yId===research.xId)research.yId=null;
+ research.dialoguePhase??=research.reply?3:bound(research.phase,0,2);
+ if(!research.xId){research.dialoguePhase=0;researchSelect(host,route.xSelection,'xId');}
+ else{
+  host.append(el('p',researchText('Je staat bij ‘{X}’.')));
+  if(!research.yId){research.dialoguePhase=0;researchSelect(host,route.ySelection,'yId');}
+  else{
+   host.append(el('p',researchText('Je gesprek is tussen ‘{X}’ en ‘{Y}’.')));
+   host.append(button('Andere woorden kiezen',()=>{research.xId=null;research.yId=null;research.dialoguePhase=0;research.reply=false;save();render();}));
+   if(research.dialoguePhase===0)researchField(host,route.hereField);
+   else if(research.dialoguePhase===1)researchField(host,route.lookField);
+   else if(research.dialoguePhase===2){host.append(el('p',researchText('‘{X}’ spreekt tegen ‘{Y}’.')));researchField(host,route.field);}
+   else{host.append(el('p',researchText('‘{Y}’ antwoordt ‘{X}’.')));researchField(host,{...route.replyField,referenceKey:researchAnswerKey(route.field)});}
+  }
+ }
+ canvas(host);
+ if(research.xId&&research.yId&&research.dialoguePhase>=2)collector(host,true,route.collectionInvitation,true);
 }
 function researchView(host){
  if(!state.research)state.research={routeId:null,xId:null,yId:null,phase:0,variant:null,reply:false,reverse:false};
@@ -178,6 +221,7 @@ function researchView(host){
   host.append(el('p','Je kunt hier iets toevoegen of gewoon verdergaan.'));canvas(host);collector(host,true,route.collectionInvitation,true);save();return;
  }
  if(route.variants&&!route.variants[research.variant])research.variant=choose(Object.keys(route.variants));
+ if(route.interactionType==='dialogue'){dialogueView(host,route);save();return;}
  const variant=route.variants?.[research.variant];
  if(route.interactionType==='standing'&&words.length<2&&research.phase===1){research.phase=0;research.reverse=false;}
  if(variant)research.phase=bound(research.phase,0,variant.phases.length-1);
@@ -192,15 +236,6 @@ function researchView(host){
    }
    if(research.phase!==2)host.append(button(route.changeChoice,()=>{research.phase=2;save();render();}));
    if(research.phase===0&&words.length>=2)host.append(button(route.lookChoice,()=>{research.phase=1;save();render();}));
-  }else if(route.interactionType==='dialogue'){
-   if(research.phase===0){researchField(host,route.hereField);host.append(button(route.lookChoice,()=>{research.phase=1;save();render();}));}
-   else{
-    researchSelect(host,route.ySelection,'yId');
-    if(research.yId){
-     if(research.phase===1){researchField(host,route.lookField);host.append(button(route.sayChoice,()=>{research.phase=2;save();render();}));}
-     else{researchField(host,route.field);if(research.reply)researchField(host,{...route.replyField,referenceKey:researchAnswerKey(route.field)});else host.append(button(researchText(route.replyChoice),()=>{research.reply=true;save();render();}));}
-    }
-   }
   }else if(route.interactionType==='size'){
    const phase=variant.phases[research.phase];
    (phase.beforeFields??[]).forEach(definition=>researchField(host,definition));
@@ -211,7 +246,7 @@ function researchView(host){
  }
  // Every experience screen reuses the existing interactive canvas, never a readonly copy.
  canvas(host);
- if(research.xId&&(route.interactionType!=='dialogue'||(research.yId&&research.phase===2)))collector(host,true,route.collectionInvitation,true);
+ if(research.xId)collector(host,true,route.collectionInvitation,true);
  if(research.xId&&variant?.phases[research.phase].nextLabel)host.append(button(variant.phases[research.phase].nextLabel,()=>{research.phase+=1;state.activeId=research.xId;save();render();}));
  save();
 }
@@ -226,7 +261,7 @@ if(s.viewCanvas)canvas(app,true);
 if(s.id==='return'){app.append(el('p','Je kwam binnen met:'),el('blockquote',state.originalQuestion));}
 if(s.fields && s.id!=='object' && (s.id!=='images'||state.selectedImage!==null))s.fields.forEach(f=>app.append(field(f)));
 if(s.collect || (s.canvas&&!s.readonly))collector(app,Boolean(s.canvas),null,true);
-if(s.id==='finish'){app.append(el('h2','Hier begon je mee'),el('div',state.originalQuestion,{class:'literal'}),el('h2','Je Associatieruimte'),el('p','Terugblik · niet bewerkbaar',{class:'message'}));canvas(app,true);app.append(el('h2','Wat je zelf meenam'),el('div',state.answers.reflection||'',{class:'literal'}));if(state.answers.newQuestion?.trim())app.append(el('h2','Een vraag die ontstond'),el('div',state.answers.newQuestion,{class:'literal'}));if(s.intro)app.append(el('p',s.intro,{class:'intro'}));for(const item of s.contact??[]){const section=el('section',null,{class:'contact'});section.append(el('h2',item.title),el('p',item.text,{class:'intro'}));const destination=content.contactLinks?.[item.urlKey]??'';if(/^(https?:\/\/|mailto:)/i.test(destination)){section.append(el('a',item.label,{href:destination,class:'contact-link'}));}else{section.append(el('button',item.label,{type:'button',disabled:'','aria-disabled':'true',title:'Deze link is nog niet ingesteld.'}));}app.append(section);}app.append(button('Opnieuw beginnen',reset,{class:'primary'}));}else{const nav=el('nav',null,{class:'navigation','aria-label':'Stappen'});if(state.step>0)nav.append(button('Terug',()=>go(-1)));else nav.append(el('span',''));nav.append(button('Verder',()=>{if(s.id==='object'&&state.objectPhase!==1&&state.answers.objectAction?.trim()){state.objectPhase=1;save();render();return;}if(s.id==='entry'&&(!state.entryType||!state.originalQuestion.trim())){let msg=app.querySelector('.validation');if(!msg){msg=el('p','Kies een ingang en vul in waar het over gaat. Een kort antwoord is genoeg.',{role:'status',class:'validation'});nav.before(msg);}return;}go(1);},{class:'primary'}));app.append(nav);}
+if(s.id==='finish'){app.append(el('h2','Hier begon je mee'),el('div',state.originalQuestion,{class:'literal'}),el('h2','Je Associatieruimte'),el('p','Terugblik · niet bewerkbaar',{class:'message'}));canvas(app,true);app.append(el('h2','Wat je zelf meenam'),el('div',state.answers.reflection||'',{class:'literal'}));if(state.answers.newQuestion?.trim())app.append(el('h2','Een vraag die ontstond'),el('div',state.answers.newQuestion,{class:'literal'}));if(s.intro)app.append(el('p',s.intro,{class:'intro'}));for(const item of s.contact??[]){const section=el('section',null,{class:'contact'});section.append(el('h2',item.title),el('p',item.text,{class:'intro'}));const destination=content.contactLinks?.[item.urlKey]??'';if(/^(https?:\/\/|mailto:)/i.test(destination)){section.append(el('a',item.label,{href:destination,class:'contact-link'}));}else{section.append(el('button',item.label,{type:'button',disabled:'','aria-disabled':'true',title:'Deze link is nog niet ingesteld.'}));}app.append(section);}app.append(button('Opnieuw beginnen',reset,{class:'primary'}));}else{const nav=el('nav',null,{class:'navigation','aria-label':'Stappen'});if(state.step>0)nav.append(button('Terug',()=>{if(s.id==='research'&&state.research?.routeId==='dialogue'&&state.research.dialoguePhase>0){state.research.dialoguePhase--;save();render();}else go(-1);}));else nav.append(el('span',''));nav.append(button('Verder',()=>{if(s.id==='research'&&state.research?.routeId==='dialogue'&&state.research.xId&&state.research.yId&&researchWords().length>=2&&state.research.dialoguePhase<3){state.research.dialoguePhase++;save();render();return;}if(s.id==='object'&&state.objectPhase!==1&&state.answers.objectAction?.trim()){state.objectPhase=1;save();render();return;}if(s.id==='entry'&&(!state.entryType||!state.originalQuestion.trim())){let msg=app.querySelector('.validation');if(!msg){msg=el('p','Kies een ingang en vul in waar het over gaat. Een kort antwoord is genoeg.',{role:'status',class:'validation'});nav.before(msg);}return;}go(1);},{class:'primary'}));app.append(nav);}
 }
 function go(delta){state.step=availableStep(bound(state.step+delta,0,steps.length-1),delta);save();render();app.querySelector('h1').focus();window.scrollTo({top:0,behavior:'smooth'});}
 function migrateFlow(){
