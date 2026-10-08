@@ -1,0 +1,31 @@
+const assert=require('node:assert/strict'),vm=require('node:vm');
+const {Element,questions,script,setViewport}=require('./flow.cjs');
+const key='associatieruimte.v01';
+async function setup(count=1,width=350,saved){
+ setViewport(width,380);const app=new Element('main'),notice=new Element('p'),erase=new Element('button');const original='UNIEKE STARTVRAAG';
+ const storage={[key]:JSON.stringify(saved??{stepId:'object',flowVersion:3,originalQuestion:original,answers:{},associations:Array.from({length:count},(_,i)=>({id:'word-'+i,text:'Eigen woord '+i,x:30+i*15,y:40,size:1.3,color:'#123456'})),routeId:'animal',imageIds:['image-01','image-02','image-03']})};
+ let ctx,seed=78128;const math=Object.create(Math);math.random=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
+ async function boot(){ctx={Math:math,document:{querySelector:q=>({'#app':app,'#erase':erase,'#storage-notice':notice})[q],createElement:t=>new Element(t)},localStorage:{getItem:k=>storage[k]??null,setItem:(k,v)=>storage[k]=v,removeItem:k=>delete storage[k]},crypto:require('node:crypto').webcrypto,window:{scrollTo(){}},fetch:async()=>({ok:true,json:async()=>questions})};vm.createContext(ctx);vm.runInContext(script,ctx);await new Promise(r=>setImmediate(r));}await boot();
+ const state=()=>JSON.parse(storage[key]);const click=text=>{const b=app.querySelectorAll('button').find(n=>n.textContent===text||n.attrs['aria-label']===text);assert(b,text);b.listeners.click();};const answer=text=>{const input=app.querySelector('textarea');input.value=text;input.listeners.input();};
+ return{app,state,boot,click,answer,storage,get ctx(){return ctx;}};
+}
+(async()=>{
+ assert.equal(questions.steps.filter(s=>s.id==='object').length,1);assert.equal(questions.steps[questions.steps.findIndex(s=>s.id==='object')+1].id,'return');
+ for(const width of [350,872])for(const count of [0,1,2]){
+  const h=await setup(count,width),object=h.state().objectId;assert(questions.objectPool.includes(object));assert(!h.app.textContent.includes('UNIEKE STARTVRAAG'));assert.equal(h.app.querySelector('textarea').attrs['aria-label'],'Wat zou je ermee doen?');assert(h.app.querySelector('.canvas'));assert.equal(h.app.querySelectorAll('.word').length,count);assert(!h.app.querySelector('.answer-chip'));
+  if(count){const word=h.app.querySelector('.word');assert.equal(word.style.left,'30%');assert.equal(word.style.fontSize,(16*1.3)+'px');assert.equal(word.style.backgroundColor,'#123456');}
+  const raw='  Handelen $& <b>\n  ';h.answer(raw);assert.equal(h.state().answers.objectAction,raw);assert.equal(h.state().associations.length,count);h.click('Verder');assert.equal(h.app.querySelector('textarea').attrs['aria-label'],'Voer je bedachte actie in gedachten uit. Wat zie je?');assert(h.app.querySelector('.canvas'));const view='  Mijn eigen verbeelding\n  ';h.answer(view);assert.equal(h.state().answers.objectView,view);
+  assert.deepEqual(h.app.querySelectorAll('.answer-chip-text').map(n=>n.textContent),[raw,view]);assert(!h.app.querySelectorAll('.answer-chip-text').some(n=>n.textContent===object));assert.equal(h.state().associations.length,count);assert(h.app.textContent.includes('Komt er nog iets anders bij je op?'));assert(!h.app.textContent.includes('UNIEKE STARTVRAAG'));assert.equal(h.app.querySelectorAll('textarea').length,1);
+  const color=h.app.querySelectorAll('input').find(n=>n.attrs['aria-label']==='Kleur voor nieuw woord of korte zin');color.value='#abcdef';color.listeners.input();h.click('Toevoegen: '+raw);assert.equal(h.state().associations.at(-1).text,raw);assert.equal(h.state().associations.at(-1).color,'#abcdef');h.click('Al toegevoegd: '+raw);assert.equal(h.state().associations.length,count+1);h.click('Toevoegen: '+view);assert.equal(h.state().associations.length,count+2);
+  const input=h.app.querySelectorAll('input').find(n=>n.attrs['aria-label']==='Nieuw woord of korte zin');input.value='Eigen kortere associatie';h.app.querySelector('form').listeners.submit({preventDefault(){}});assert.equal(h.state().associations.at(-1).text,'Eigen kortere associatie');await h.boot();assert.equal(h.state().objectId,object);assert.equal(h.state().objectPhase,1);assert.equal(h.app.querySelector('textarea').value,view);assert.equal(h.state().associations.length,count+3);
+  h.click('Terug');assert.equal(h.state().stepId,'arrange');h.click('Verder');assert.equal(h.state().stepId,'object');assert.equal(h.state().objectId,object);h.click('Verder');assert.equal(h.state().stepId,'return');assert.equal(h.app.querySelector('blockquote').textContent,'UNIEKE STARTVRAAG');h.click('Verder');h.click('Verder');assert.equal(h.state().stepId,'finish');assert(h.app.textContent.includes('Hier begon je mee'));assert(!h.app.textContent.includes('Er verschijnt ineens'));h.click('Opnieuw beginnen');assert.notEqual(h.state().objectId,object);
+ }
+ // Every object is reachable and no immediate repeats; simulate real reset/selection functions.
+ const h=await setup(),counts=Object.fromEntries(questions.objectPool.map(id=>[id,0]));let previous=null;for(let i=0;i<10000;i++){vm.runInContext('reset()',h.ctx);const id=h.state().objectId;assert.notEqual(id,previous);counts[id]++;previous=id;}for(const n of Object.values(counts))assert(Math.abs(n/10000-.1)<.02);console.log('Object simulation:',JSON.stringify(counts));
+ // Old sessions retain their intended step; index-only v2 and existing IDs resume safely.
+ for(const [step,stepId] of [[6,'return'],[7,'new'],[8,'finish']]){
+  const saved={step,flowVersion:2,originalQuestion:'Bewaren',answers:{reflection:'Eigen opbrengst'},associations:[],routeId:'animal',imageIds:['image-01','image-02','image-03']};const old=await setup(0,350,saved);assert.equal(old.state().stepId,stepId);assert.equal(old.state().answers.reflection,'Eigen opbrengst');assert(questions.objectPool.includes(old.state().objectId));await old.boot();assert.equal(old.state().stepId,stepId);
+ }
+ const skip=await setup(0);skip.click('Verder');assert.equal(skip.state().stepId,'return');assert.equal(skip.state().associations.length,0);
+ console.log('PASS object: local pool, uniform resets, stable resume, two fixed questions, literal own-only chips with optional color, no automatic addition, free input, 0/1/2 elements, old sessions, return/finish on desktop/mobile');
+})().catch(e=>{console.error(e);process.exitCode=1;});

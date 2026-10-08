@@ -70,6 +70,20 @@
       "changeHint": "Je kunt iets verplaatsen, groter of kleiner maken, kleur geven, iets toevoegen of weghalen."
     },
     {
+      "id": "object",
+      "title": "Nog één ding…",
+      "fields": [
+        {
+          "key": "objectAction",
+          "text": "Wat zou je ermee doen?"
+        },
+        {
+          "key": "objectView",
+          "text": "Voer je bedachte actie in gedachten uit. Wat zie je?"
+        }
+      ]
+    },
+    {
       "id": "return",
       "category": "terugkeren",
       "title": "Terug naar je beginvraag",
@@ -294,6 +308,46 @@
         "open",
         "made"
       ]
+    },
+    {
+      "id": "image-11",
+      "src": "images/candidates/image-11-v2.webp"
+    },
+    {
+      "id": "image-12",
+      "src": "images/candidates/image-12-v2.webp"
+    },
+    {
+      "id": "image-13",
+      "src": "images/candidates/image-13.webp"
+    },
+    {
+      "id": "image-14",
+      "src": "images/candidates/image-14.webp"
+    },
+    {
+      "id": "image-15",
+      "src": "images/candidates/image-15-v2.webp"
+    },
+    {
+      "id": "image-16",
+      "src": "images/candidates/image-16-v2.webp"
+    },
+    {
+      "id": "image-17",
+      "src": "images/candidates/image-17-v2.webp"
+    },
+    {
+      "id": "image-18",
+      "src": "images/candidates/image-18-v2.webp"
+    },
+    {
+      "id": "image-19",
+      "src": "images/candidates/image-19-v2.webp"
+    },
+    {
+      "id": "image-20",
+      "src": "images/candidates/image-20.webp"
     }
   ],
   "researchRoutes": [
@@ -460,5 +514,17 @@
   "legacyAnswerKeys": [
     "memory",
     "memoryDetail"
+  ],
+  "objectPool": [
+    "touw",
+    "ladder",
+    "stoel",
+    "deken",
+    "bal",
+    "krijtje",
+    "doos",
+    "zaklamp",
+    "emmer",
+    "paraplu"
   ]
 }

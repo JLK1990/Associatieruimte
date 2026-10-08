@@ -15,7 +15,7 @@ const state=()=>JSON.parse(storage[key]);
   if(i%1000===0){await boot();assert.deepEqual(state().imageIds,ids);}
   previous=ids;
  }
- for(const count of Object.values(counts)){assert(count>0);assert(Math.abs(count/sessions-.3)<.025,'Distribution should be approximately equal');}
+ for(const count of Object.values(counts)){assert(count>0);assert(Math.abs(count/sessions-3/questions.imagePool.length)<.025,'Distribution should be approximately equal');}
  // A valid saved set, including formerly excluded images, must remain unchanged.
  const saved=state();saved.imageIds=['image-02','image-03','image-09'];storage[key]=JSON.stringify(saved);await boot();assert.deepEqual(state().imageIds,saved.imageIds);
  // Remember the last set even when only the session record is cleared.
