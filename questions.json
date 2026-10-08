@@ -391,27 +391,24 @@
       "minTextElements": 2,
       "interactionType": "dialogue",
       "xSelection": "Kies een woord waar je gevoelsmatig even bij wilt gaan staan.",
-      "ySelection": "Kijk vanaf ‘{X}’ naar de andere woorden in je ruimte. Welk woord trekt je aandacht?",
+      "ySelection": "Welk ander woord kies je voor dit gesprek met ‘{X}’?",
       "field": {
         "key": "say",
-        "text": "Als ‘{X}’ vanuit deze plek iets tegen ‘{Y}’ kon zeggen, wat zou dat dan zijn?"
+        "text": "Als ‘{X}’ iets tegen ‘{Y}’ kon zeggen, wat zou dat dan zijn?"
       },
-      "replyChoice": "Wil je ‘{Y}’ laten reageren?",
       "replyField": {
         "key": "reply",
-        "text": "En als ‘{Y}’ daarop kon reageren, wat zou het dan zeggen?"
+        "text": "Als ‘{Y}’ daarop kon antwoorden, wat zou ‘{Y}’ dan zeggen?"
       },
       "collectionInvitation": "Zit er iets in wat er net ontstond dat je aan je Associatieruimte wilt toevoegen?",
       "hereField": {
         "key": "here",
         "text": "Ga in gedachten eens bij ‘{X}’ staan. Blijf daar even. Wat ervaar je hier?"
       },
-      "lookChoice": "Vanaf dit woord naar de andere woorden kijken",
       "lookField": {
         "key": "look",
         "text": "Blijf nog even bij ‘{X}’ staan en kijk naar ‘{Y}’. Wat ervaar je als je vanaf hier naar ‘{Y}’ kijkt?"
-      },
-      "sayChoice": "Vanuit deze plek iets laten zeggen"
+      }
     },
     {
       "id": "size",

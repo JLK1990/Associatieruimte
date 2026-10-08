@@ -8,6 +8,7 @@ class Element{
  append(...c){this.children.push(...c);for(const n of c)n.parent=this;}
  replaceChildren(...c){this.children=[];this._text='';this.append(...c);}
  addEventListener(k,fn){this.listeners[k]=fn;}
+ remove(){if(this.parent)this.parent.children=this.parent.children.filter(n=>n!==this);this.parent=null;}
  querySelectorAll(q){return this.children.flatMap(c=>[...(match(c,q)?[c]:[]),...c.querySelectorAll(q)]);}
  querySelector(q){return this.querySelectorAll(q)[0];}focus(){}before(n){this.parent.children.splice(this.parent.children.indexOf(this),0,n);}setPointerCapture(id){this.capturedPointer=id;}
  getBoundingClientRect(){return {width,height};}get offsetWidth(){return parseFloat(this.style.width)||Math.min(width*.65,140);}get offsetHeight(){return parseFloat(this.style.height)||44;}
