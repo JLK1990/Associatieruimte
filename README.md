@@ -120,3 +120,13 @@ Tests: `node tests/dialogue.cjs` controleert de vaste ronde, behoud van alle woo
 Voorwerpmigratie: `objectFlowVersion: 2` onderscheidt de twee nieuwe fasen van oudere sessies. Oude vraagfasen 0 en 1 worden samengevoegd naar 0; oude toevoegfase 2 wordt 1. Antwoorden, voorwerp en canvas worden niet gewist of afgeleid uit antwoordinhoud. De versie wordt lokaal opgeslagen, zodat herhaald verversen de migratie niet opnieuw toepast. De algemene `flowVersion` en andere routes blijven ongewijzigd.
 
 `node tests/object.cjs` controleert beide gelijktijdige velden, alle vier combinaties van lege/ingevulde antwoorden, opslag tijdens typen, refresh in beide fasen, terug/vooruit, hervatten, oude fasewaarden en behoud van het voorwerp en canvas op desktop/mobiele DOM-afmetingen. `node tests/object-browser.cjs` bevat aanvullende echte Chromium-controles voor desktop/mobiel en oude sessies. Chromium ontbreekt in deze werkomgeving; die browsertest is daarom niet uitgevoerd.
+
+## Woordkeuze vanuit de ruimte
+
+De keuzelijst en canvasklik gebruiken `selectResearchWord()`. Een canvasklik vult de ontbrekende X of Y, of een expliciet geactiveerde herkeuze via Woord voor de oefening wijzigen / Tweede woord wijzigen. Na een geldige keuze verandert klikken alleen de bewerkingsselectie (`activeId`); de oefening blijft werken met `research.xId`/`yId`. Bij dialoog kiest de eerste klik X en de tweede een ander woord als Y. Andere woorden kiezen start een expliciete nieuwe keuze; rollen worden niet omgewisseld.
+
+X/Y-badges en een gestippelde rand tonen oefenrollen; de bestaande doorgetrokken selectierand en de controls tonen welk element wordt bewerkt. Een keuze via de keuzelijst selecteert hetzelfde woord ook voor bewerken, zodat de controls niet onverwacht een eerder woord aanpassen. Daarna zijn beide selecties onafhankelijk. Er wordt tijdens pointerdown/pointermove geen nieuw scherm gerenderd; de bestaande draghandlers blijven intact.
+
+Verder controleert ontbrekende keuzes, ook bij de relationele verdieping van standing. Oefening overslaan / Oefening afronden is een afzonderlijke bewuste actie. Scoped antwoorden en bestaande elementen blijven behouden bij herkeuze, teruggaan en refresh.
+
+`node tests/selection.cjs` controleert alle researchroutes en beide groottevarianten op desktop/mobiele DOM-afmetingen: klik/keuzelijst, X/Y, visuele rolmarkers, activeId, bediening, validatie, overslaan/afronden, herkeuze en hervatten. `node tests/selection-browser.cjs` bevat echte Chromium-checks voor muis/touch; in de werkomgeving ontbreekt Chromium, dus die test is niet uitgevoerd.
