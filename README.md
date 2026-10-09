@@ -120,3 +120,14 @@ Tests: `node tests/dialogue.cjs` controleert de vaste ronde, behoud van alle woo
 Aanvullende voorwerptests: `node tests/object.cjs` controleert refresh in 0/1/2 met lege en ingevulde antwoorden, input zonder fasewisseling, terug/vooruit en oude fasewaarden. `node tests/object-browser.cjs` bevat dezelfde controles in echte Chromium voor desktop/mobiel. Chromium ontbreekt in de werkomgeving, dus die browsertest is niet uitgevoerd.
 
 In voorwerpfase 1 staat boven het actieve veld een ondergeschikte, niet-bewerkbare terugverwijzing met de eerste vraag en het letterlijke antwoord uit `answers.objectAction`. Spaties, regeleinden en tekens blijven intact. Alleen het tweede antwoord heeft hier een invulveld; het voorwerp blijft zichtbaar. De objecttests controleren de volgorde en behoud van beide antwoorden na herladen.
+
+
+## Woordkeuze vanuit de ruimte
+
+De keuzelijst en canvasklik gebruiken `selectResearchWord()`. Een canvasklik vult de ontbrekende X of Y, of een expliciet geactiveerde herkeuze via Woord voor de oefening wijzigen / Tweede woord wijzigen. Na een geldige keuze verandert klikken alleen de bewerkingsselectie (`activeId`); de oefening blijft werken met `research.xId`/`yId`. Bij dialoog kiest de eerste klik X en de tweede een ander woord als Y. Andere woorden kiezen start een expliciete nieuwe keuze; rollen worden niet omgewisseld.
+
+X/Y-badges en een gestippelde rand tonen oefenrollen; de bestaande doorgetrokken selectierand en de controls tonen welk element wordt bewerkt. Een keuze via de keuzelijst selecteert hetzelfde woord ook voor bewerken, zodat de controls niet onverwacht een eerder woord aanpassen. Daarna zijn beide selecties onafhankelijk. Er wordt tijdens pointerdown/pointermove geen nieuw scherm gerenderd; de bestaande draghandlers blijven intact.
+
+Verder controleert ontbrekende keuzes, ook bij de relationele verdieping van standing. Oefening overslaan / Oefening afronden is een afzonderlijke bewuste actie. Scoped antwoorden en bestaande elementen blijven behouden bij herkeuze, teruggaan en refresh.
+
+`node tests/selection.cjs` controleert alle researchroutes en beide groottevarianten op desktop/mobiele DOM-afmetingen: klik/keuzelijst, X/Y, visuele rolmarkers, activeId, bediening, validatie, overslaan/afronden, herkeuze en hervatten. `node tests/selection-browser.cjs` bevat echte Chromium-checks voor muis/touch; in de werkomgeving ontbreekt Chromium, dus die test is niet uitgevoerd.
