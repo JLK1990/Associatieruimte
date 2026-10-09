@@ -50,7 +50,7 @@ function finish(h){while(h.state().research?.routeId==='dialogue'&&h.state().res
   // Dialogue: choose both words first; one fixed X -> Y -> reply round.
   const b=await setup(2,viewport);enterDialogue(b);assert.equal(b.app.querySelectorAll('textarea').length,1);assert.equal(b.app.querySelector('textarea').attrs['aria-label'],`Als ‘${xText}’ iets tegen ‘${yText}’ kon zeggen, wat zou dat dan zijn?`);
   b.answer(0,'Alles is de eerste keer spannend. Heb vertrouwen!');assert.equal(b.state().associations.length,2);canvasWorks(b);b.click('Verder');
-  assert.equal(b.app.querySelector('textarea').attrs['aria-label'],`Als ‘${yText}’ daarop kon antwoorden, wat zou ‘${yText}’ dan zeggen?`);assert.equal(b.app.querySelector('.answer-reference').textContent,'(Eerder schreef je: ‘Alles is de eerste keer spannend. Heb vertrouwen!’)');
+  assert.equal(b.app.querySelector('textarea').attrs['aria-label'],`Als ‘${yText}’ daarop kon antwoorden, wat zou ‘${yText}’ dan zeggen?`);assert.equal(b.app.querySelector('.answer-context').children[1].textContent,'Alles is de eerste keer spannend. Heb vertrouwen!');
   b.answer(0,'Eigen antwoord Y');b.add('een eigen korte zin');await b.boot();assert.equal(b.app.querySelector('textarea').value,'Eigen antwoord Y');assert.equal(b.state().research.dialoguePhase,3);assert.equal(b.app.querySelectorAll('select').length,0);noOldFlow(b);finish(b);
   const bSkip=await setup(2,viewport);enterDialogue(bSkip);finish(bSkip);
   // Both size contrasts; each phase is genuinely interactive and body fields accept anything/empty.

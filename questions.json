@@ -103,7 +103,9 @@
       "fields": [
         {
           "key": "newQuestion",
-          "text": "Heeft dit je misschien een nieuwe vraag gegeven? (Optioneel)"
+          "text": "Heeft dit je misschien een nieuwe vraag gegeven? (Optioneel)",
+          "contextKey": "reflection",
+          "contextLabel": "Bij het terugkijken naar je beginvraag schreef je:"
         }
       ]
     },
@@ -371,18 +373,29 @@
       "ySelection": "Welk ander woord trekt vanaf ‘{X}’ je aandacht?",
       "lookField": {
         "key": "look",
-        "text": "Blijf bij ‘{X}’ staan en kijk naar ‘{Y}’. Wat ervaar je?"
+        "text": "Blijf bij ‘{X}’ staan en kijk naar ‘{Y}’. Wat ervaar je?",
+        "contextKeys": [
+          "here",
+          "around"
+        ]
       },
       "reverseChoice": "Vanaf het andere woord terugkijken",
       "reverseField": {
         "key": "reverse",
-        "text": "Ga nu eens gevoelsmatig bij ‘{Y}’ staan en kijk terug naar ‘{X}’. Hoe is het vanaf deze kant?"
+        "text": "Ga nu eens gevoelsmatig bij ‘{Y}’ staan en kijk terug naar ‘{X}’. Hoe is het vanaf deze kant?",
+        "contextKeys": [
+          "look"
+        ]
       },
       "collectionInvitation": "Komt er, terwijl je hier staat, nog iets op dat je aan je Associatieruimte wilt toevoegen?",
       "changeChoice": "Een mogelijke verandering verbeelden",
       "changeField": {
         "key": "change",
-        "text": "Als ‘{X}’ zou kunnen veranderen, wat zou er dan gebeuren?"
+        "text": "Als ‘{X}’ zou kunnen veranderen, wat zou er dan gebeuren?",
+        "contextKeys": [
+          "here",
+          "around"
+        ]
       }
     },
     {
@@ -394,11 +407,17 @@
       "ySelection": "Welk ander woord kies je voor dit gesprek met ‘{X}’?",
       "field": {
         "key": "say",
-        "text": "Als ‘{X}’ iets tegen ‘{Y}’ kon zeggen, wat zou dat dan zijn?"
+        "text": "Als ‘{X}’ iets tegen ‘{Y}’ kon zeggen, wat zou dat dan zijn?",
+        "contextKeys": [
+          "look"
+        ]
       },
       "replyField": {
         "key": "reply",
-        "text": "Als ‘{Y}’ daarop kon antwoorden, wat zou ‘{Y}’ dan zeggen?"
+        "text": "Als ‘{Y}’ daarop kon antwoorden, wat zou ‘{Y}’ dan zeggen?",
+        "contextKeys": [
+          "say"
+        ]
       },
       "collectionInvitation": "Zit er iets in wat er net ontstond dat je aan je Associatieruimte wilt toevoegen?",
       "hereField": {
@@ -407,7 +426,10 @@
       },
       "lookField": {
         "key": "look",
-        "text": "Blijf nog even bij ‘{X}’ staan en kijk naar ‘{Y}’. Wat ervaar je als je vanaf hier naar ‘{Y}’ kijkt?"
+        "text": "Blijf nog even bij ‘{X}’ staan en kijk naar ‘{Y}’. Wat ervaar je als je vanaf hier naar ‘{Y}’ kijkt?",
+        "contextKeys": [
+          "here"
+        ]
       }
     },
     {
@@ -448,7 +470,17 @@
                   "text": "Wat merk je nu in je lijf?"
                 }
               ],
-              "nextLabel": "Het verschil bekijken en zelf een grootte kiezen"
+              "nextLabel": "Het verschil bekijken en zelf een grootte kiezen",
+              "contextKeys": [
+                {
+                  "key": "largeView",
+                  "label": "Toen ‘{X}’ groot was: wat gebeurde er?"
+                },
+                {
+                  "key": "largeBody",
+                  "label": "Toen ‘{X}’ groot was: wat merkte je in je lijf?"
+                }
+              ]
             },
             {
               "id": "own",
@@ -458,7 +490,25 @@
                   "text": "Wat merk je aan het verschil tussen groot en klein?"
                 }
               ],
-              "instruction": "Geef ‘{X}’ nu de grootte die op dit moment voor jou klopt."
+              "instruction": "Geef ‘{X}’ nu de grootte die op dit moment voor jou klopt.",
+              "contextKeys": [
+                {
+                  "key": "largeView",
+                  "label": "Toen ‘{X}’ groot was: wat gebeurde er?"
+                },
+                {
+                  "key": "largeBody",
+                  "label": "Toen ‘{X}’ groot was: wat merkte je in je lijf?"
+                },
+                {
+                  "key": "smallView",
+                  "label": "Toen ‘{X}’ klein was: wat gebeurde er?"
+                },
+                {
+                  "key": "smallBody",
+                  "label": "Toen ‘{X}’ klein was: wat merkte je in je lijf?"
+                }
+              ]
             }
           ]
         },
@@ -491,7 +541,13 @@
                   "text": "Wat merk je nu in je lijf?"
                 }
               ],
-              "nextLabel": "Het verschil bekijken en zelf een grootte kiezen"
+              "nextLabel": "Het verschil bekijken en zelf een grootte kiezen",
+              "contextKeys": [
+                {
+                  "key": "smallBody",
+                  "label": "Toen ‘{X}’ klein was: wat merkte je in je lijf?"
+                }
+              ]
             },
             {
               "id": "own",
@@ -501,7 +557,17 @@
                   "text": "Wat is er anders tussen die twee?"
                 }
               ],
-              "instruction": "Geef ‘{X}’ nu de grootte die op dit moment voor jou klopt."
+              "instruction": "Geef ‘{X}’ nu de grootte die op dit moment voor jou klopt.",
+              "contextKeys": [
+                {
+                  "key": "smallBody",
+                  "label": "Toen ‘{X}’ klein was: wat merkte je in je lijf?"
+                },
+                {
+                  "key": "largeBody",
+                  "label": "Toen ‘{X}’ groot was: wat merkte je in je lijf?"
+                }
+              ]
             }
           ]
         }

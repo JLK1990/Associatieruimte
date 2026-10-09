@@ -47,8 +47,10 @@ function updateAnswerReference(node){
  node.textContent=node.hidden?'':`(Eerder schreef je: ‘${answer}’)`;
 }
 function answerReference(key){const node=el('p',null,{class:'message answer-reference'});node.style.whiteSpace='pre-wrap';node.style.overflowWrap='anywhere';node.dataset.answerKey=key;updateAnswerReference(node);return node;}
-function refreshAnswerReferences(){for(const node of app.querySelectorAll('.answer-reference'))updateAnswerReference(node);}
-function field(f){const text=f.text;const label=el('label',null,{class:'field'});label.append(el('span',text));const referenceKey=f.referenceKey??content.routes.find(route=>route.id===state.routeId)?.fields[f.referenceRouteField]?.key;if(referenceKey)label.append(answerReference(referenceKey));const input=el('textarea',null,{'aria-label':text});input.value=f.key==='originalQuestion'?state.originalQuestion:(state.answers[f.key]??'');input.addEventListener('input',()=>{if(f.key==='originalQuestion')state.originalQuestion=input.value;else state.answers[f.key]=input.value;save();refreshAnswerReferences();refreshAnswerSuggestions();});label.append(input);return label;}
+function updateAnswerContext(node){const answer=state.answers[node.dataset.answerKey];node.hidden=typeof answer!=='string'||!answer.trim();node.children[1].textContent=node.hidden?'':answer;}
+function answerContext(key,label){const node=el('section',null,{class:'message answer-context'}),answer=el('div','');answer.style.whiteSpace='pre-wrap';answer.style.overflowWrap='anywhere';node.dataset.answerKey=key;node.append(el('p',label),answer);updateAnswerContext(node);return node;}
+function refreshAnswerReferences(){for(const node of app.querySelectorAll('.answer-reference'))updateAnswerReference(node);for(const node of app.querySelectorAll('.answer-context'))updateAnswerContext(node);}
+function field(f){if(f.contextKey)app.append(answerContext(f.contextKey,f.contextLabel));const text=f.text;const label=el('label',null,{class:'field'});label.append(el('span',text));const referenceKey=f.referenceKey??content.routes.find(route=>route.id===state.routeId)?.fields[f.referenceRouteField]?.key;if(referenceKey)label.append(answerReference(referenceKey));const input=el('textarea',null,{'aria-label':text});input.value=f.key==='originalQuestion'?state.originalQuestion:(state.answers[f.key]??'');input.addEventListener('input',()=>{if(f.key==='originalQuestion')state.originalQuestion=input.value;else state.answers[f.key]=input.value;save();refreshAnswerReferences();refreshAnswerSuggestions();});label.append(input);return label;}
 function newElementPosition(text){
  const existing=app.querySelector('.canvas'),space=existing??el('div',null,{class:'canvas'});
  if(!existing){space.style.visibility='hidden';app.append(space);}
@@ -175,6 +177,10 @@ function researchAnswerKey(definition){
  const scope=[research.routeId,research.xId,definition.text.includes('{Y}')||definition.key==='reply'?research.yId:'',research.variant??'',definition.key].join('.');
  return 'research.'+scope;
 }
+function researchContext(host,route,references=[]){
+ const definitions=[...(route.fields??[]),route.hereField,route.lookField,route.reverseField,route.field,route.replyField,route.changeField,...Object.values(route.variants??{}).flatMap(v=>v.phases.flatMap(p=>[...(p.beforeFields??[]),...(p.fields??[])]))].filter(Boolean);
+ for(const reference of references){const key=typeof reference==='string'?reference:reference.key,definition=definitions.find(f=>f.key===key);if(definition)host.append(answerContext(researchAnswerKey(definition),researchText(reference.label??definition.text)));}
+}
 function researchField(host,definition){host.append(field({...definition,key:researchAnswerKey(definition),text:researchText(definition.text),literal:true}));}
 function researchSelectionKey(){
  if(steps[state.step]?.id!=='research')return null;
@@ -238,9 +244,9 @@ function dialogueView(host,route){
    host.append(el('p',researchText('Je gesprek is tussen ‘{X}’ en ‘{Y}’.')));
    host.append(button('Andere woorden kiezen',()=>{research.xId=null;research.yId=null;research.dialoguePhase=0;research.reply=false;research.selectionTarget=null;save();render();}));
    if(research.dialoguePhase===0)researchField(host,route.hereField);
-   else if(research.dialoguePhase===1)researchField(host,route.lookField);
-   else if(research.dialoguePhase===2){host.append(el('p',researchText('‘{X}’ spreekt tegen ‘{Y}’.')));researchField(host,route.field);}
-   else{host.append(el('p',researchText('‘{Y}’ antwoordt ‘{X}’.')));researchField(host,{...route.replyField,referenceKey:researchAnswerKey(route.field)});}
+   else if(research.dialoguePhase===1){researchContext(host,route,route.lookField.contextKeys);researchField(host,route.lookField);}
+   else if(research.dialoguePhase===2){researchContext(host,route,route.field.contextKeys);host.append(el('p',researchText('‘{X}’ spreekt tegen ‘{Y}’.')));researchField(host,route.field);}
+   else{researchContext(host,route,route.replyField.contextKeys);host.append(el('p',researchText('‘{Y}’ antwoordt ‘{X}’.')));researchField(host,route.replyField);}
   }
  }
  researchSelectionStatus(host);canvas(host);
@@ -271,15 +277,15 @@ function researchView(host){
  if(research.xId){
   if(route.interactionType==='standing'){
    if(research.phase===0){route.fields.forEach(definition=>researchField(host,definition));}
-   else if(research.phase===2){researchField(host,route.changeField);}
+   else if(research.phase===2){researchContext(host,route,route.changeField.contextKeys);researchField(host,route.changeField);}
    else{
-    researchSelect(host,route.ySelection,'yId');
+    researchContext(host,route,research.reverse?route.reverseField.contextKeys:route.lookField.contextKeys);researchSelect(host,route.ySelection,'yId');
     if(research.yId){researchField(host,research.reverse?route.reverseField:route.lookField);if(!research.reverse)host.append(button(route.reverseChoice,()=>{research.reverse=true;save();render();}));}
    }
    if(research.phase!==2)host.append(button(route.changeChoice,()=>{research.phase=2;save();render();}));
    if(research.phase===0&&words.length>=2)host.append(button(route.lookChoice,()=>{research.phase=1;save();render();}));
   }else if(route.interactionType==='size'){
-   const phase=variant.phases[research.phase];
+   const phase=variant.phases[research.phase];researchContext(host,route,phase.contextKeys);
    (phase.beforeFields??[]).forEach(definition=>researchField(host,definition));
    if(phase.id==='own')(phase.fields??[]).forEach(definition=>researchField(host,definition));
    host.append(el('p',researchText(phase.instruction),{class:'intro'}));
