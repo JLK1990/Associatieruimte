@@ -40,7 +40,7 @@ function finish(h){while(h.state().research?.routeId==='dialogue'&&h.state().res
  assert(!questions.interventions&&!questions.experiment);assert(!questions.steps.some(s=>s.id==='experiment'));assert.equal(questions.steps[4].id,'research');assert.equal(questions.steps[3].id,'space');assert.equal(questions.steps[5].id,'arrange');assert(!questions.steps.some(s=>s.id==='explore'));
  const zero=await setup(0);assert.equal(zero.app.querySelector('h1').textContent,'Nog één ding…');assert.equal(zero.state().research,null);
  for(const viewport of ['desktop','mobile']){
-  const single=await setup(1,viewport);assert.deepEqual(single.app.querySelector('.choices').querySelectorAll('button').map(n=>n.textContent),['Bij een woord gaan staan','Groot en klein ervaren']);single.click('Verder');assert.equal(single.app.querySelector('h1').textContent,'Kijk opnieuw naar je ruimte');
+  const single=await setup(1,viewport);assert.deepEqual(single.app.querySelector('.choices').querySelectorAll('button').map(n=>n.textContent),['Bij een woord gaan staan','Groot en klein ervaren']);single.click('Oefening overslaan');assert.equal(single.app.querySelector('h1').textContent,'Kijk opnieuw naar je ruimte');
   const pair=await setup(2,viewport);assert.equal(pair.app.querySelector('.choices').querySelectorAll('button').length,3);
   // Standing: literal user words, optional relation, optional reverse, no automatic collecting.
   const a=await setup(2,viewport);a.click('Bij een woord gaan staan');assert.equal(a.app.querySelectorAll('textarea').length,0);a.select(0,'word-0');assert.equal(a.app.querySelectorAll('textarea')[0].attrs['aria-label'],`Ga in gedachten eens bij ‘${xText}’ staan. Blijf daar even. Wat ervaar je hier?`);canvasWorks(a);a.answer(0,'Niets');a.answer(1,'Geen idee');assert.equal(a.state().associations.length,2);assert(a.app.textContent.includes('Komt er, terwijl je hier staat, nog iets op'));a.add('vertrouwen','#8844aa');assert.equal(a.state().associations.length,3);assert(a.app.querySelector('.canvas').querySelectorAll('.word').some(n=>n.textContent==='vertrouwen'));assert.equal(a.state().associations.at(-1).color,'#8844aa');
@@ -65,7 +65,7 @@ function finish(h){while(h.state().research?.routeId==='dialogue'&&h.state().res
   }
   // Changing X preserves old answers by ID; deleted selections do not leave impossible prompts.
   const changed=await setup(2,viewport);changed.click('Bij een woord gaan staan');changed.select(0,'word-0');changed.answer(0,'Eerste ervaring');changed.select(0,'word-1');assert.equal(changed.app.querySelector('textarea').value,'');changed.select(0,'word-0');assert.equal(changed.app.querySelector('textarea').value,'Eerste ervaring');changed.app.querySelector('.word').listeners.click();changed.click('Verwijderen');assert.equal(changed.state().research.xId,null);assert.equal(changed.app.querySelectorAll('textarea').length,0);
-  const missing=await setup(2,viewport);enterDialogue(missing);missing.app.querySelector('.word').listeners.click();missing.click('Verwijderen');assert.equal(missing.app.querySelectorAll('textarea').length,0);assert(!missing.app.querySelector('select'));missing.click('Verder');assert.equal(missing.app.querySelector('h1').textContent,'Kijk opnieuw naar je ruimte');
+  const missing=await setup(2,viewport);enterDialogue(missing);missing.app.querySelector('.word').listeners.click();missing.click('Verwijderen');assert.equal(missing.app.querySelectorAll('textarea').length,0);assert(!missing.app.querySelector('select'));missing.click('Oefening overslaan');assert.equal(missing.app.querySelector('h1').textContent,'Kijk opnieuw naar je ruimte');
  }
  // Standing alone retains the open change question, interactive experiment and later reminder.
  for(const viewport of ['desktop','mobile'])for(const count of [1,2]){
@@ -78,7 +78,7 @@ function finish(h){while(h.state().research?.routeId==='dialogue'&&h.state().res
  for(const viewport of ['desktop','mobile'])for(const match of [true,false]){
   const h=await setup(2,viewport),old=h.state();delete old.flowVersion;old.stepId='explore';old.step=5;old.selectedElement=match?xText:'Removed word';old.answers.memory='Eerdere ervaring';old.answers.memoryDetail='Letterlijke verandering';h.storage[key]=JSON.stringify(old);await h.boot();assert.equal(h.state().stepId,'research');assert.equal(h.state().research.routeId,'standing');assert.equal(h.state().answers.memoryDetail,'Letterlijke verandering');
   if(match){assert.equal(h.state().research.phase,2);assert.equal(h.app.querySelector('textarea').value,'Letterlijke verandering');assert.equal(h.state().answers['research.standing.word-0...change'],'Letterlijke verandering');await h.boot();assert.equal(h.state().research.phase,2);h.click('Verder');assert(h.app.querySelector('.answer-reference').textContent.includes('Letterlijke verandering'));}
-  else{assert.equal(h.state().research.xId,null);assert(!h.app.querySelector('textarea'));h.click('Verder');}
+  else{assert.equal(h.state().research.xId,null);assert(!h.app.querySelector('textarea'));h.click('Oefening overslaan');}
   assert(h.app.querySelectorAll('.answer-chip-text').some(n=>n.textContent==='Letterlijke verandering'));
  }
  // Existing arrange session keeps the legacy change reminder without repeating the exercise.
